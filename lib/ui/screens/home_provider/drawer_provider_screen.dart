@@ -104,12 +104,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                               : authProvider.customer!.name ??
                                                   'Customer'),
                                           style: const TextStyle(
-                                              color: Colors.white, fontSize: 16),
+                                              color: Colors.white,
+                                              fontSize: 16),
                                         ),
                                         const Text(
                                           'نشط الآن',
                                           style: TextStyle(
-                                              color: Colors.green, fontSize: 12),
+                                              color: Colors.green,
+                                              fontSize: 12),
                                         ),
                                       ],
                                     ),
@@ -175,7 +177,9 @@ class _CustomDrawerState extends State<CustomDrawer> {
                               icon: Icons.map_outlined,
                               label: 'موزعين كروت أجير',
                               onTap: () {
-                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => AjeerDistributionsScreen()));
+                                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (context) =>
+                                        AjeerDistributionsScreen()));
                               },
                             ),
                             // buildMenuItem(
@@ -227,7 +231,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                               label: 'تقييم التطبيق',
                               onTap: () async {
                                 final String androidUrl =
-                                    'https://play.google.com/store/apps/details?id=com.app.ajeer';
+                                    'https://play.google.com/store/apps/details?id=com.ajeer.ajeer';
                                 final String iosUrl =
                                     'https://apps.apple.com/us/app/%D8%A3%D8%AC%D9%8A%D8%B1-ajeer/id6736632788';
 

@@ -145,7 +145,7 @@ class MoreScreen extends StatelessWidget {
                   //     } else
                   //     {
                   //       Share.share(
-                  //           'https://play.google.com/store/apps/details?id=com.app.ajeer');
+                  //           'https://play.google.com/store/apps/details?id=com.ajeer.ajeer');
                   //     }
                   //   },
                   //   child: ListTile(
@@ -159,7 +159,7 @@ class MoreScreen extends StatelessWidget {
                   InkWell(
                     onTap: () async {
                       final String androidUrl =
-                          'https://play.google.com/store/apps/details?id=com.app.ajeer';
+                          'https://play.google.com/store/apps/details?id=com.ajeer.ajeer';
                       final String iosUrl =
                           'https://apps.apple.com/us/app/%D8%A3%D8%AC%D9%8A%D8%B1-ajeer/id6736632788';
 

@@ -2,12 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>This app needs access to location when open to show nearby distributors.</string>
-    <key>NSLocationAlwaysUsageDescription</key>
-    <string>This app needs access to location when in the background to show nearby distributors.</string>
-    <key>io.flutter.embedded_views_preview</key>
-    <true/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -84,21 +78,5 @@
 	</array>
 	<key>aps-environment</key>
 	<string>production</string>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-		<key>NSAllowsArbitraryLoadsInWebContent</key>
-		<true/>
-	</dict>
-	<key>WKWebViewConfiguration</key>
-	<dict>
-		<key>allowsInlineMediaPlayback</key>
-		<true/>
-		<key>allowsPictureInPictureMediaPlayback</key>
-		<true/>
-		<key>suppressesIncrementalRendering</key>
-		<false/>
-	</dict>
 </dict>
 </plist>
