@@ -15,14 +15,14 @@ class CategoryListView extends StatelessWidget {
     return Padding(
       padding: const EdgeInsetsDirectional.only(start: 16),
       child: SizedBox(
-        height: 220,
+        height: 300,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           itemCount: categories.length,
           shrinkWrap: true,
           itemBuilder: (context, index) {
             return Padding(
-              padding: const EdgeInsetsDirectional.only(end: 16),
+              padding: const EdgeInsetsDirectional.only(end: 16,top: 10,bottom: 10,start: 10),
               child: SingleCategoryCard(
                 title: categories[index].title,
                 imagePath: categories[index].image,

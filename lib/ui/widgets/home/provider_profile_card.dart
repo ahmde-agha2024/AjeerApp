@@ -30,6 +30,7 @@ class ProviderProfileCard extends StatelessWidget {
                       )));
         },
         child: Card(
+          elevation: 3,
           color: Colors.white,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

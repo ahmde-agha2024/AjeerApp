@@ -102,15 +102,12 @@ dev_dependencies:
   flutter_lints: ^3.0.0
 
 flutter_launcher_icons:
-  android: true
+  android: "launcher_icon"
   ios: true
-  image_path: "assets/Icons/Profile_Icon_01.png"
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/Icons/Profile_Icon_01.png"
-  remove_alpha_ios: false
-  adaptive_icon_padding: true
+  image_path: "assets/Icons/ajeer_ic.jpg"
   min_sdk_android: 21
-  adaptive_icon_foreground_scale_factor: 0.7
+
+
 
 
 # For information on the generic Dart part of this file, see the

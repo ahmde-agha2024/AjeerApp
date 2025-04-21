@@ -28,99 +28,106 @@ class MostRequestedListView extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (ctx) => ProviderDetailsScreen(providerId: mostRequested[index].id),
+                      builder: (ctx) => ProviderDetailsScreen(
+                          providerId: mostRequested[index].id),
                     ),
                   );
                 },
                 child: Card(
                   color: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  elevation: 3,
                   child: SizedBox(
                     width: MediaQuery.of(context).size.width * 0.6,
                     child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          ClipRRect(
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(16),
-                              topRight: Radius.circular(16),
-                            ),
-                            child: Stack(
-                              children: [
-                                ClipOval(
-                                  child: CachedNetworkImage(
-                                    imageUrl: mostRequested[index].image ?? 'IMAGE', // TODO: Add Default image
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Column(
+                          children: [
+                            ClipRRect(
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(16),
+                                topRight: Radius.circular(16),
+                              ),
+                              child: Stack(
+                                children: [
+                                  CachedNetworkImage(
+                                    imageUrl: mostRequested[index].image ??
+                                        'IMAGE', // TODO: Add Default image
                                     height: 110,
-                                    width: 110,
+                                    width: double.infinity,
                                     fit: BoxFit.cover,
                                   ),
-                                ),
-                                // Positioned(
-                                //   top: 8,
-                                //   left: 8,
-                                //   child: Card(
-                                //     color: MyColors.MainPrimary,
-                                //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                //     child: Padding(
-                                //       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                                //       child: Text(
-                                //         'Most requested'.tr(),
-                                //         style: const TextStyle(
-                                //           fontSize: 12,
-                                //           color: Colors.white,
-                                //           fontWeight: FontWeight.w100,
-                                //         ),
-                                //       ),
-                                //     ),
-                                //   ),
-                                // ),
-                              ],
+                                  // Positioned(
+                                  //   top: 8,
+                                  //   left: 8,
+                                  //   child: Card(
+                                  //     color: MyColors.MainPrimary,
+                                  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                  //     child: Padding(
+                                  //       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                                  //       child: Text(
+                                  //         'Most requested'.tr(),
+                                  //         style: const TextStyle(
+                                  //           fontSize: 12,
+                                  //           color: Colors.white,
+                                  //           fontWeight: FontWeight.w100,
+                                  //         ),
+                                  //       ),
+                                  //     ),
+                                  //   ),
+                                  // ),
+                                ],
+                              ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            mostRequested[index].name,
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                            
-                                          ),
-                                        ),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              mostRequested[index].stars.toString(),
+                            Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              mostRequested[index].name,
                                               style: const TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
                                               ),
                                             ),
-                                            const Icon(
-                                              Icons.star,
-                                              color: Colors.amber,
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                          ),
+                                          Row(
+                                            children: [
+                                              Text(
+                                                mostRequested[index]
+                                                    .stars
+                                                    .toString(),
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
+                                              const Icon(
+                                                Icons.star,
+                                                color: Colors.amber,
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),

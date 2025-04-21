@@ -42,7 +42,7 @@ class SingleCategoryCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.grey,
                 spreadRadius: 1,
                 blurRadius: 5,
                 offset: const Offset(0, 2),
@@ -56,7 +56,7 @@ class SingleCategoryCard extends StatelessWidget {
                 child: Image.network(
                   imagePath,
                   width: double.infinity,
-                  height: 160,
+                  height: 200,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -65,6 +65,12 @@ class SingleCategoryCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Column(
                   children: [
+                    const SizedBox(height: 10),
+                    CustomPaint(
+                      size: Size(double.infinity, 1),
+                      painter: DashedLinePainter(),
+                    ),
+                    const SizedBox(height: 10),
                     Text(
                       title.tr(),
                       textAlign: TextAlign.center,
@@ -72,7 +78,8 @@ class SingleCategoryCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 14,
-                        fontWeight: FontWeight.w500,
+
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
@@ -118,4 +125,29 @@ class SingleCategoryCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class DashedLinePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.grey
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+
+    const dashWidth = 5.0;
+    const dashSpace = 5.0;
+    double startX = 0;
+    while (startX < size.width) {
+      canvas.drawLine(
+        Offset(startX, 0),
+        Offset(startX + dashWidth, 0),
+        paint,
+      );
+      startX += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
