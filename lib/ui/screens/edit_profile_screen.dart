@@ -146,7 +146,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                           if (!isClient)
                             Provider.of<Auth>(context).provider!.image!.contains(
-                                    "https://test.ajeer.cloud/Icons/default.png")
+                                    "https://Test.ajeer.cloud/Icons/default.png")
                                 ? Positioned(
                                     bottom: 0,
                                     right: 0,
@@ -214,15 +214,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         buildInputDecoration(hintText: 'Full Name'.tr()),
                   ),
                   const SizedBox(height: 16),
-                  LabelText(text: 'Phone Number'.tr()),
-                  const SizedBox(height: 8),
-                  phoneNumber(context),
-                  const SizedBox(height: 16),
                   LabelText(text: 'Email'.tr()),
                   const SizedBox(height: 8),
-                  TextField(
+                  TextFormField(
                     controller: _emailController,
                     decoration: buildInputDecoration(hintText: 'Email'.tr()),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'الرجاء إدخال البريد الإلكتروني';
+                      }
+                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                        return 'الرجاء إدخال بريد إلكتروني صحيح';
+                      }
+                      return null;
+                    },
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                  ),
+                  const SizedBox(height: 16),
+                  LabelText(text: 'Phone Number'.tr()),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    readOnly: true,
+                    enabled: false,
+                    controller: phoneController,
+                    decoration: buildInputDecoration(hintText: 'Phone Number'.tr()).copyWith(
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                      hintStyle: TextStyle(color: Colors.grey[600]),
+                    ),
+                    style: TextStyle(color: Colors.grey[800]),
                   ),
                   const SizedBox(height: 16),
                   if (Provider.of<Auth>(context, listen: false).isProvider)
@@ -343,37 +363,59 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: TextButton(
                       style: flatButtonStyle,
                       onPressed: () async {
-                        ResponseHandler handledResponse =
-                            await Provider.of<Auth>(context, listen: false)
-                                .deleteAccount();
+                        // Show confirmation dialog
+                        bool? confirmDelete = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('تأكيد الحذف'.tr()),
+                            content: Text('هل أنت متأكد من حذف الحساب؟'.tr()),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(false),
+                                child: Text('إلغاء'.tr()),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(true),
+                                child: Text('حذف'.tr(), style: TextStyle(color: Colors.red)),
+                              ),
+                            ],
+                          ),
+                        );
 
-                        if (handledResponse.status == ResponseStatus.success) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'تم حذف الحساب بنجاح'.tr(),
+                        // If user confirmed deletion
+                        if (confirmDelete == true) {
+                          ResponseHandler handledResponse =
+                              await Provider.of<Auth>(context, listen: false)
+                                  .deleteAccount();
+
+                          if (handledResponse.status == ResponseStatus.success) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'تم حذف الحساب بنجاح'.tr(),
+                                ),
                               ),
-                            ),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                handledResponse.errorMessage ??
-                                    'حدث خطأ أثناء حذف الحساب'.tr(),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  handledResponse.errorMessage ??
+                                      'حدث خطأ أثناء حذف الحساب'.tr(),
+                                ),
+                                backgroundColor: MyColors.MainBulma,
                               ),
-                              backgroundColor: MyColors.MainBulma,
-                            ),
-                          );
+                            );
+                          }
+
+                          Future.delayed(const Duration(seconds: 1), () {
+                            navigatorKey.currentState!.pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                  builder: (context) => const AuthScreen()),
+                              (route) => false,
+                            );
+                          });
                         }
-
-                        Future.delayed(const Duration(seconds: 1), () {
-                          navigatorKey.currentState!.pushAndRemoveUntil(
-                            MaterialPageRoute(
-                                builder: (context) => const AuthScreen()),
-                            (route) => false,
-                          );
-                        });
                       },
                       child: Text(
                         'Delete Account'.tr(),

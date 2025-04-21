@@ -450,6 +450,7 @@ class _ServiceRequestCardState extends State<ServiceRequestCard> {
                                                   'OFFER_ACCEPTED') {
                                                 ScaffoldMessenger.of(context)
                                                     .showSnackBar(SnackBar(
+                                                  behavior: SnackBarBehavior.floating,
                                                   content: Text(
                                                       "تم إنهاء الخدمة بنجاح"
                                                           .tr()),
@@ -457,6 +458,7 @@ class _ServiceRequestCardState extends State<ServiceRequestCard> {
                                               } else {
                                                 ScaffoldMessenger.of(context)
                                                     .showSnackBar(SnackBar(
+                                                  behavior: SnackBarBehavior.floating,
                                                   content: Text(
                                                       "تم إلغاء الخدمة بنجاح"
                                                           .tr()),
@@ -468,6 +470,7 @@ class _ServiceRequestCardState extends State<ServiceRequestCard> {
                                                 null) {
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(SnackBar(
+                                                behavior: SnackBarBehavior.floating,
                                                 content: Text(handledResponse
                                                     .errorMessage!
                                                     .tr()),
@@ -475,6 +478,7 @@ class _ServiceRequestCardState extends State<ServiceRequestCard> {
                                             } else {
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(SnackBar(
+                                                behavior: SnackBarBehavior.floating,
                                                 content:
                                                     Text("Error Occurred".tr()),
                                               ));

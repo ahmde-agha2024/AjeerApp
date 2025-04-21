@@ -1,4 +1,4 @@
 class BaseURL {
-  static const String baseCustomerUrl = 'https://test.ajeer.cloud/customer';
-  static const String baseServiceProviderUrl = 'https://test.ajeer.cloud/provider';
+  static const String baseCustomerUrl = 'https://Test.ajeer.cloud/customer';
+  static const String baseServiceProviderUrl = 'https://Test.ajeer.cloud/provider';
 }

@@ -8,7 +8,9 @@ import 'package:photo_view/photo_view.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../constants/my_colors.dart';
+import '../../../controllers/general/statusprovider.dart';
 import '../../widgets/appbar_title.dart';
+import '../../widgets/button_styles.dart';
 import '../../widgets/sized_box.dart';
 import '../../widgets/title_section.dart';
 
@@ -18,11 +20,15 @@ class RequestDetailsProviderScreen extends StatefulWidget {
   RequestDetailsProviderScreen({super.key, required this.loadedService});
 
   @override
-  State<RequestDetailsProviderScreen> createState() => _RequestDetailsProviderScreenState();
+  State<RequestDetailsProviderScreen> createState() =>
+      _RequestDetailsProviderScreenState();
 }
 
-class _RequestDetailsProviderScreenState extends State<RequestDetailsProviderScreen> {
-  late ResponseHandler<ProviderOffers> providerOffers=ResponseHandler(status: ResponseStatus.error);
+class _RequestDetailsProviderScreenState
+    extends State<RequestDetailsProviderScreen> {
+  late ResponseHandler<ProviderOffers> providerOffers =
+      ResponseHandler(status: ResponseStatus.error);
+
   @override
   Widget build(BuildContext context) {
     print(widget.loadedService.image!);
@@ -36,27 +42,31 @@ class _RequestDetailsProviderScreenState extends State<RequestDetailsProviderScr
             thickness: 10,
           ),
           SizedBoxedH16,
-          TitleSections(title: 'تفاصيل الخدمة', isViewAll: false, onTapView: () {}),
+          TitleSections(
+              title: 'تفاصيل الخدمة', isViewAll: false, onTapView: () {}),
           SizedBoxedH16,
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Card(
               color: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               child: SizedBox(
                 width: MediaQuery.of(context).size.width * 0.9,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(top: 16, bottom: 16, right: 8),
+                      padding:
+                          const EdgeInsets.only(top: 16, bottom: 16, right: 8),
                       child: ClipRRect(
                         borderRadius: const BorderRadius.all(
                           Radius.circular(16),
                         ),
                         child: CachedNetworkImage(
                           imageUrl: widget.loadedService.image!,
-                          errorWidget: (context, url, error) => Icon(Icons.error),
+                          errorWidget: (context, url, error) =>
+                              Icon(Icons.error),
                           height: 120,
                           width: 100,
                           fit: BoxFit.cover,
@@ -65,7 +75,8 @@ class _RequestDetailsProviderScreenState extends State<RequestDetailsProviderScr
                     ),
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 16),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
@@ -85,12 +96,16 @@ class _RequestDetailsProviderScreenState extends State<RequestDetailsProviderScr
                                 Card(
                                   color: MyColors.cardPriceBackgroundColor,
                                   elevation: 0,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16)),
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 6, horizontal: 12),
                                     child: Text(
                                       '${widget.loadedService.price} دينار',
-                                      style: const TextStyle(fontSize: 12, color: MyColors.MainPrimary),
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          color: MyColors.MainPrimary),
                                     ),
                                   ),
                                 )
@@ -99,7 +114,8 @@ class _RequestDetailsProviderScreenState extends State<RequestDetailsProviderScr
                             SizedBoxedH8,
                             Row(
                               children: [
-                                SvgPicture.asset('assets/svg/request_calender.svg'),
+                                SvgPicture.asset(
+                                    'assets/svg/request_calender.svg'),
                                 const SizedBox(width: 6),
                                 Text(
                                   'تاريخ الطلب ${widget.loadedService.date}',
@@ -136,13 +152,14 @@ class _RequestDetailsProviderScreenState extends State<RequestDetailsProviderScr
           SizedBoxedH16,
           Divider(color: Colors.grey.withOpacity(0.1), thickness: 10),
           SizedBoxedH16,
-          TitleSections(title: 'بيانات العميل', isViewAll: false, onTapView: () {}),
+          TitleSections(
+              title: 'بيانات العميل', isViewAll: false, onTapView: () {}),
           SizedBoxedH16,
           ListTile(
             leading: CircleAvatar(
               radius: 30,
-              backgroundImage: CachedNetworkImageProvider(widget.loadedService.customer!.image!,
-
+              backgroundImage: CachedNetworkImageProvider(
+                widget.loadedService.customer!.image!,
               ),
             ),
             title: Text(
@@ -179,7 +196,8 @@ class _RequestDetailsProviderScreenState extends State<RequestDetailsProviderScr
           SizedBoxedH16,
           Divider(color: Colors.grey.withOpacity(0.1), thickness: 10),
           SizedBoxedH16,
-          TitleSections(title: 'وصف المشكلة', isViewAll: false, onTapView: () {}),
+          TitleSections(
+              title: 'وصف المشكلة', isViewAll: false, onTapView: () {}),
           SizedBoxedH16,
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -194,7 +212,8 @@ class _RequestDetailsProviderScreenState extends State<RequestDetailsProviderScr
           SizedBoxedH16,
           Divider(color: Colors.grey.withOpacity(0.1), thickness: 10),
           SizedBoxedH16,
-          TitleSections(title: 'صور المشكلة', isViewAll: false, onTapView: () {}),
+          TitleSections(
+              title: 'صور المشكلة', isViewAll: false, onTapView: () {}),
           SizedBoxedH16,
           SizedBox(
             height: 80,
@@ -217,9 +236,10 @@ class _RequestDetailsProviderScreenState extends State<RequestDetailsProviderScr
                               },
                               child: PhotoView(
                                 backgroundDecoration:
-                                BoxDecoration(color: Colors.white),
+                                    BoxDecoration(color: Colors.white),
                                 customSize: Size.fromWidth(300),
-                                imageProvider: NetworkImage(widget.loadedService.image!),
+                                imageProvider:
+                                    NetworkImage(widget.loadedService.image!),
                               ),
                             ),
                           ),
@@ -238,6 +258,79 @@ class _RequestDetailsProviderScreenState extends State<RequestDetailsProviderScr
             ),
           ),
           SizedBoxedH16,
+          TitleSections(
+              title: 'حالة الطلب', isViewAll: false, onTapView: () {}),
+          SizedBoxedH16,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 100),
+            child: Visibility(
+              child: TextButton(
+                style: flatButtonPrimaryStyle,
+                onPressed: () async {
+                  print(widget.loadedService.service_status);
+                  if (widget.loadedService.service_status == 'NEW_OFFER') {
+                    await StatusProviderController.changeStatus(
+                        widget.loadedService.id.toString(), "onWay");
+                  } else if (widget.loadedService.service_status == 'onWay') {
+                    await StatusProviderController.changeStatus(
+                        widget.loadedService.id.toString(), "Work_Now");
+                  } else if (widget.loadedService.service_status ==
+                      'Work_Now') {
+                    await StatusProviderController.changeStatus(
+                        widget.loadedService.id.toString(), "done_Work");
+                  }
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    widget.loadedService.service_status == 'NEW_OFFER'
+                        ? Expanded(
+                            child: const Text(
+                              textAlign: TextAlign.center,
+                              "تم قبول العرض , سيتم التنفيذ في الوقت المحدد",
+                              style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white),
+                            ),
+                          )
+                        : widget.loadedService.service_status == 'onWay'
+                            ? const Text(
+                                textAlign: TextAlign.center,
+                                "الفني في الطريق",
+                                style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white),
+                              )
+                            : widget.loadedService.service_status == 'Work_Now'
+                                ? const Text(
+                                    textAlign: TextAlign.center,
+                                    "يتم تنفيذ العمل الأن",
+                                    style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.white),
+                                  )
+                                : widget.loadedService.service_status ==
+                                        'done_Work'
+                                    ? Expanded(
+                                        child: const Text(
+                                          textAlign: TextAlign.center,
+                                          "إكتمل العمل , تم الدفع",
+                                          style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.white),
+                                        ),
+                                      )
+                                    : SizedBox(),
+                  ],
+                ),
+              ),
+            ),
+          ),
           // Divider(color: Colors.grey.withOpacity(0.1), thickness: 10),
           // SizedBoxedH16,
           // Padding(

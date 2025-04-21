@@ -153,10 +153,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       controller: phoneController,
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'please_enter_phone_number'.tr();
+          return 'من فضلك أدخل رقم الهاتف';
         }
         if (value.length < 10) {
-          return 'phone_number_must_be_10_digits_at_minimum'.tr();
+          return 'رقم الهاتف يجب أن يكون 10 أرقام على الأقل';
+        }
+        if (!value.startsWith('09')) {
+          return 'رقم الهاتف يجب أن يبدأ بـ 09';
         }
         return null;
       },

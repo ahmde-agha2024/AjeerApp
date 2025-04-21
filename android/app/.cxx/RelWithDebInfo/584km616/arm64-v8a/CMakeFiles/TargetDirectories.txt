@@ -1,0 +1,2 @@
+/Users/ajeerco/Downloads/ajeer_main/android/app/.cxx/RelWithDebInfo/584km616/arm64-v8a/CMakeFiles/edit_cache.dir
+/Users/ajeerco/Downloads/ajeer_main/android/app/.cxx/RelWithDebInfo/584km616/arm64-v8a/CMakeFiles/rebuild_cache.dir

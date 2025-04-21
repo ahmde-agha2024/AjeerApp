@@ -120,7 +120,7 @@ class _HomeProviderScreenState extends State<HomeProviderScreen> {
                                     const SizedBox(width: 16),
                                     Expanded(
                                       child: BuildStatsCard(
-                                        'عروض بإنتظار الموافقة',
+                                        'العروض المقدمة',
                                         _providerHome!.response!.stats!
                                             .offersCount!.toString(),
                                         Colors.black,
@@ -137,9 +137,7 @@ class _HomeProviderScreenState extends State<HomeProviderScreen> {
                                 isViewAll: false,
                                 onTapView: () {},
                               ),
-
                               const SizedBox(height: 16),
-
                               // المخطط البياني
                               Padding(
                                 padding: const EdgeInsets.symmetric(

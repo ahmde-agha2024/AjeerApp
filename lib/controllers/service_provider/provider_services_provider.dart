@@ -116,4 +116,38 @@ class ProviderServicesProvider with ChangeNotifier {
     }
     return handledResponse;
   }
+
+   Future<ResponseHandler> changeStatus(String serviceId, String status) async {
+    ResponseHandler handledResponse = ResponseHandler(status: ResponseStatus.success);
+
+    String url = '${BaseURL.baseServiceProviderUrl}/change-status';
+    try {
+      http.Response response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'authorization': 'Bearer $_accessToken',
+        },
+        body: 'service_id=$serviceId&status=$status',
+      );
+
+      if (!await checkResponseHttp(response)) {
+        return handledResponse;
+      }
+
+      if (response.statusCode == 200) {
+        handledResponse.status = ResponseStatus.success;
+      } else {
+        handledResponse.status = ResponseStatus.error;
+        handledResponse.errorMessage = jsonDecode(response.body)['message'];
+      }
+
+   //   logMessage(location: 'cancelAService STATUS CODE', message: response.statusCode);
+     // logMessage(location: 'cancelAService RESPONSE', message: response.body.toString());
+    } catch (e, s) {
+      logMessage(location: 'ERROR ON cancelAService', message: e.toString(), stack: s.toString());
+    }
+    return handledResponse;
+  }
 }

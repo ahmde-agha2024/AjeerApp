@@ -128,17 +128,21 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
                                             },
                                             child: PhotoView(
                                               backgroundDecoration:
-                                              BoxDecoration(color: Colors.white),
+                                                  BoxDecoration(
+                                                      color: Colors.white),
                                               customSize: Size.fromWidth(300),
-                                              imageProvider: NetworkImage(serviceDetailsResponse!.response!.image,),
+                                              imageProvider: NetworkImage(
+                                                serviceDetailsResponse!
+                                                    .response!.image,
+                                              ),
                                             ),
                                           ),
                                         ),
                                       );
                                     },
                                     child: CachedNetworkImage(
-                                      imageUrl:
-                                          serviceDetailsResponse!.response!.image,
+                                      imageUrl: serviceDetailsResponse!
+                                          .response!.image,
                                       height: 120,
                                       width: 100,
                                       fit: BoxFit.cover,
@@ -207,6 +211,29 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
                                         ],
                                       ),
                                       SizedBoxedH8,
+                                      Row(
+                                        children: [
+                                          const SizedBox(width: 6),
+                                          Expanded(
+                                            child: Text(
+                                              'حالة الطلب: ${widget.requestedService.service_status == "NEW_OFFER"
+                                                  ? "تم قبول العرض , سيتم التنفيذ في الوقت المحدد"
+                                                  : widget.requestedService.service_status == "onWay"
+                                                  ? "الفني في الطريق"
+                                                  : widget.requestedService.service_status == "Work_Now"
+                                                  ? "يتم تنفيذ العمل الأن"
+                                                  : widget.requestedService.service_status == "done_Work"
+                                                  ? "إكتمل العمل , تم الدفع"
+                                                  : "غير محدد"}',
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                color: MyColors.textColor,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                       // Row(
                                       //   children: [
                                       //     SvgPicture.asset('assets/svg/request_calender.svg'),
@@ -462,7 +489,8 @@ class _ServiceOfferCardState extends State<ServiceOfferCard> {
         padding: const EdgeInsets.symmetric(horizontal: 4.0),
         child: Card(
           color: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: SizedBox(
             width: MediaQuery.of(context).size.width * 0.9,
             child: Row(
@@ -484,9 +512,10 @@ class _ServiceOfferCardState extends State<ServiceOfferCard> {
                 ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 12),
                     child: Wrap(
-                     // mainAxisSize: MainAxisSize.min,
+                      // mainAxisSize: MainAxisSize.min,
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -495,7 +524,7 @@ class _ServiceOfferCardState extends State<ServiceOfferCard> {
                               'عامل رقم ${widget.offer.provider?.id ?? '0000'}'
                                   .tr(),
                               style: const TextStyle(
-                                 fontSize: 16,
+                                fontSize: 16,
                                 color: MyColors.Darkest,
                                 fontWeight: FontWeight.bold,
                               ),

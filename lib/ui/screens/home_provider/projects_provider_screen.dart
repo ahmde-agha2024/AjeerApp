@@ -103,6 +103,7 @@ class _ProjectsProviderScreenState extends State<ProjectsProviderScreen> {
                     ],
                   )
                 : Column(
+          mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBoxedH16,
                       handledResponse.response!.length!=0? Expanded(

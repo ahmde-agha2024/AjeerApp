@@ -263,7 +263,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                     )
                   : DropdownButtonFormField<City>(
                       value: _selectedCity,
-                      decoration: buildInputDecoration(hintText: 'City'.tr()),
+                      decoration: buildInputDecoration(hintText: 'المدينة'.tr()),
                       items: cities!.response!
                           .map((city) => DropdownMenuItem<City>(
                               value: city,
@@ -292,7 +292,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                     ? DropdownButtonFormField<Region>(
                         value: _selectedCityRegion,
                         decoration:
-                            buildInputDecoration(hintText: 'Region'.tr()),
+                            buildInputDecoration(hintText: 'المنطقة'),
                         items: cityRegions!.response!
                             .map((region) => DropdownMenuItem<Region>(
                                 value: region,

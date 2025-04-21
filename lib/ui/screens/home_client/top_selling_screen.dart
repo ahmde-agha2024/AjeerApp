@@ -40,7 +40,7 @@ class _TopSellingScreenState extends State<TopSellingScreen> {
       body: Column(
         children: [
           AppbarTitle(
-            title: 'Top Selling'.tr(),
+            title: "الأكثر طلبا"
           ),
           !_isDataFetched
               ? loaderWidget(context)

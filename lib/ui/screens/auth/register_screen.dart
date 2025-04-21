@@ -392,9 +392,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 color: MyColors.LightDark),
           ),
           autovalidateMode: AutovalidateMode.onUserInteraction,
+          onTapOutside: (event) {
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'الرجاء ادخال الاسم'.tr();
+            }
+            if (value.length < 3) {
+              return 'يجب أن يكون الاسم مكونًا من 3 أحرف على الأقل'.tr();
             }
             return null;
           },
@@ -416,6 +422,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         const SizedBox(height: 8),
         TextFormField(
           controller: _inviite_link,
+          onTapOutside: (event) {
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
           decoration: InputDecoration(
             fillColor: Colors.white,
             filled: true,
@@ -496,19 +505,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
           const SizedBox(height: 8),
           TextFormField(
             controller: _bioController,
-            decoration: buildInputDecoration(hintText: 'Brief summary'.tr()),
-            maxLines: 3,
+            decoration: buildInputDecoration(hintText: 'Brief summary'.tr()).copyWith(
+              counterText: '${_bioController.text.length}/80',
+              counterStyle: TextStyle(
+                color: _bioController.text.length < 80 ? Colors.red : Colors.green,
+                fontSize: 12,
+              ),
+            ),
+            maxLines: 4,
+            onTapOutside: (event) {
+              FocusManager.instance.primaryFocus?.unfocus();
+            },
+            onChanged: (value) {
+              setState(() {
+                // The counter will update automatically through the decoration
+              });
+            },
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'الرجاء إدخال نبذة مختصرة';
+              }
+              if (value.length < 80) {
+                return 'يجب أن تكون النبذة المختصرة 80 حرف على الأقل';
+              }
+              return null;
+            },
           ),
           const SizedBox(height: 16),
-          LabelText(text: 'إختيار تخصص'.tr()), // TODO TRNSLATE
+          LabelText(text: 'إختيار تخصص'.tr()),
           const SizedBox(height: 8),
           !_isCategoriesFetched
               ? const Center(
                   child: CircularProgressIndicator(),
                 )
               : DropdownButtonFormField<int>(
-                  decoration:
-                      buildInputDecoration(hintText: 'Specialization'.tr()),
+                  decoration: buildInputDecoration(hintText: 'Specialization'.tr()),
                   items: categories!.response!
                       .map((e) => DropdownMenuItem<int>(
                           value: e.id, child: Text(e.title)))
@@ -525,6 +556,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         _isSubCategoriesFetched = true;
                       });
                     });
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'الرجاء اختيار التخصص';
+                    }
+                    return null;
                   },
                 ),
           const SizedBox(height: 8),
@@ -606,6 +643,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       selectedCityId = value;
                     });
                   },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'الرجاء اختيار المدينة';
+                    }
+                    return null;
+                  },
                 ),
           const SizedBox(height: 16),
           LabelText(text: 'رقم جواز السفر'.tr()),
@@ -625,6 +668,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Expanded(child: buildIdProofBox('صورة شخصية', 'idSelfie')),
             ],
           ),
+          if (imageDocuments['idFront'] == null || imageDocuments['idSelfie'] == null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                'الرجاء رفع جميع الصور المطلوبة',
+                style: TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ),
           // const SizedBox(height: 8),
           // buildIdProofBox('Shop photo', 'accountImage'),
         ],
@@ -684,10 +735,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       controller: phoneController,
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'please_enter_phone_number'.tr();
+          return 'من فضلك أدخل رقم الهاتف';
         }
         if (value.length < 10) {
-          return 'phone_number_must_be_10_digits_at_minimum'.tr();
+          return 'رقم الهاتف يجب أن يكون 10 أرقام على الأقل';
+        }
+        if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+          return 'رقم الهاتف يجب أن يحتوي على أرقام فقط';
+        }
+        if (!value.startsWith('09')) {
+          return 'رقم الهاتف يجب أن يبدأ بـ 09';
         }
         return null;
       },
@@ -724,10 +781,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       autovalidateMode: AutovalidateMode.onUserInteraction,
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'أدخل رقم جواز السفر';
+          return 'أدخل رقم جواز السفر'.tr();
         }
-        if (value.length < 3) {
-          return 'يجب أن يكون جواز السفر مكونًا من 3 خانات على الأقل'.tr();
+        if (value.length < 8) {
+          return 'يجب أن يكون جواز السفر مكونًا من 8 خانات على الأقل'.tr();
+        }
+        if (!RegExp(r'^[A-Za-z0-9]+$').hasMatch(value)) {
+          return 'يجب أن يحتوي جواز السفر على أحرف وأرقام فقط'.tr();
         }
         return null;
       },
@@ -740,7 +800,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         errorBorder: InputBorders.errorBorder,
         focusedBorder: InputBorders.focusedBorder,
         focusedErrorBorder: InputBorders.focusedErrorBorder,
-        hintText: "جواز السفر",
+        hintText: "جواز السفر".tr(),
         alignLabelWithHint: true,
         hintStyle: const TextStyle(
             fontSize: 14,
@@ -760,11 +820,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
       autovalidateMode: AutovalidateMode.onUserInteraction,
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'please_enter_password'.tr();
+          return 'الرجاء إدخال كلمة المرور';
         }
-        if (value.length < 6) {
-          return 'password_must_be_at_least_6_characters'.tr();
+        if (value.length < 8) {
+          return 'كلمة المرور يجب أن تكون 8 خانات على الأقل';
         }
+        if (!RegExp(r'[A-Z]').hasMatch(value)) {
+          return 'يجب أن تحتوي كلمة المرور على أحرف كبيرة';
+        }
+        if (!RegExp(r'[a-z]').hasMatch(value)) {
+          return 'يجب أن تحتوي كلمة المرور على أحرف صغيرة';
+        }
+        if (!RegExp(r'[0-9]').hasMatch(value)) {
+          return 'يجب أن تحتوي كلمة المرور على رقم';
+        }
+        // if (!RegExp(r'[!@#\$&*~]').hasMatch(value)) {
+        //   return 'password_must_contain_special_character'.tr();
+        // }
         return null;
       },
       maxLines: 1,
@@ -809,10 +881,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       autovalidateMode: AutovalidateMode.onUserInteraction,
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'please_enter_password'.tr();
+          return 'الرجاء إدخال تأكيد كلمة المرور';
         }
-        if (value.length < 6) {
-          return 'password_must_be_at_least_6_characters'.tr();
+        if (value != _passwordController.text) {
+          return 'كلمات المرور لا تتطابق';
         }
         return null;
       },

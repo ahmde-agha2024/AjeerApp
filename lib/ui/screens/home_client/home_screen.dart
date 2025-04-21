@@ -57,11 +57,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           BackgroundAppbarHome(
             imageAssetPath: 'assets/Icons/home_background.jpeg',
-            height: MediaQuery.of(context).size.height,
+            //height: MediaQuery.of(context).size.height,
             width: MediaQuery.of(context).size.width,
           ),
           SingleChildScrollView(

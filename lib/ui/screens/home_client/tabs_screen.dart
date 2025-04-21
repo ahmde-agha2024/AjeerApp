@@ -43,6 +43,7 @@ class TabsScreen extends StatelessWidget {
     final indicatorWidth = screenWidth / 5; // Assuming 4 tabs
     final indicatorPosition = indicatorWidth * currentIndex;
     return Scaffold(
+
       body: Consumer<TabsProvider>(
         builder: (context, tabsProvider, child) {
           return _screens[tabsProvider.currentIndex];
@@ -125,6 +126,7 @@ class TabsScreen extends StatelessWidget {
             },
             activeIndex: tabsProvider.currentIndex,
             gapLocation: GapLocation.center,
+
             notchSmoothness: NotchSmoothness.smoothEdge,
             onTap: (index) => tabsProvider.updateIndex(index),
           );

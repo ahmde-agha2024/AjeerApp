@@ -76,56 +76,56 @@ class _RequestOfferProviderScreenState
                   return null;
                 },
               ),
-              // SizedBoxedH16,
-              // LabelText(text: 'تاريخ تقديم الخدمة'.tr()),
-              // const SizedBox(height: 8),
-              // TextFormField(
-              //   controller: _offerDateController,
-              //   decoration: buildInputDecoration(hintText: 'تاريخ تقديم الخدمة'.tr(), prefixIcon: const Icon(Icons.calendar_month_outlined)),
-              //   readOnly: true,
-              //   onTap: () async {
-              //     DateTime? pickedDate = await showDatePicker(
-              //       context: context,
-              //       initialDate: DateTime.now().add(Duration(days: 1)),
-              //       firstDate: DateTime.now().add(Duration(days: 1)),
-              //       lastDate: DateTime(2101),
-              //     );
-              //
-              //     if (pickedDate != null) {
-              //       _offerDateController.text = DateFormat('EE, dd MMM. yyyy').format(pickedDate);
-              //     }
-              //   },
-              //   // validator: (value) {
-              //   //   if (value == null || value.isEmpty) {
-              //   //     return 'الرجاء إدخال تاريخ تقديم الخدمة';
-              //   //   }
-              //   //   return null;
-              //   // },
-              // ),
-              // SizedBoxedH16,
-              // LabelText(text: 'توقيت تقديم الخدمة'.tr()),
-              // const SizedBox(height: 8),
-              // TextFormField(
-              //   controller: _offerTimeController,
-              //   decoration: buildInputDecoration(hintText: 'توقيت تقديم الخدمة'.tr(), prefixIcon: const Icon(Icons.watch_later_rounded)),
-              //   readOnly: true,
-              //   onTap: () async {
-              //     TimeOfDay? pickedTime = await showTimePicker(
-              //       context: context,
-              //       initialTime: TimeOfDay.now(),
-              //     );
-              //
-              //     if (pickedTime != null) {
-              //       _offerTimeController.text = pickedTime.format(context);
-              //     }
-              //   },
-              //   // validator: (value) {
-              //   //   if (value == null || value.isEmpty) {
-              //   //     return 'الرجاء إدخال توقيت تقديم الخدمة';
-              //   //   }
-              //   //   return null;
-              //   // },
-              // ),
+              SizedBoxedH16,
+              LabelText(text: 'تاريخ تقديم الخدمة'.tr()),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _offerDateController,
+                decoration: buildInputDecoration(hintText: 'تاريخ تقديم الخدمة'.tr(), prefixIcon: const Icon(Icons.calendar_month_outlined)),
+                readOnly: true,
+                onTap: () async {
+                  DateTime? pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now().add(Duration(days: 1)),
+                    firstDate: DateTime.now().add(Duration(days: 1)),
+                    lastDate: DateTime(2101),
+                  );
+
+                  if (pickedDate != null) {
+                    _offerDateController.text = DateFormat('EE, dd MMM. yyyy').format(pickedDate);
+                  }
+                },
+                // validator: (value) {
+                //   if (value == null || value.isEmpty) {
+                //     return 'الرجاء إدخال تاريخ تقديم الخدمة';
+                //   }
+                //   return null;
+                // },
+              ),
+              SizedBoxedH16,
+              LabelText(text: 'توقيت تقديم الخدمة'.tr()),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _offerTimeController,
+                decoration: buildInputDecoration(hintText: 'توقيت تقديم الخدمة'.tr(), prefixIcon: const Icon(Icons.watch_later_rounded)),
+                readOnly: true,
+                onTap: () async {
+                  TimeOfDay? pickedTime = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.now(),
+                  );
+
+                  if (pickedTime != null) {
+                    _offerTimeController.text = pickedTime.format(context);
+                  }
+                },
+                // validator: (value) {
+                //   if (value == null || value.isEmpty) {
+                //     return 'الرجاء إدخال توقيت تقديم الخدمة';
+                //   }
+                //   return null;
+                // },
+              ),
               const SizedBox(height: 16),
               SizedBoxedH16,
               SizedBox(
@@ -149,6 +149,8 @@ class _RequestOfferProviderScreenState
                             serviceId: widget.serviceDetails.id!,
                             price: double.parse(_amountController.text),
                             content: _contentMessageController.text,
+                                date: _offerDateController.text,
+                                time: DateFormat('HH:mm').parse(_offerTimeController.text),
                           );
 
                           if (response.status == ResponseStatus.success) {
@@ -160,7 +162,7 @@ class _RequestOfferProviderScreenState
                                 content: Text(response.errorMessage!)));
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('حدث خطأ ما')));
+                                SnackBar(content: Text('ليس لديك عروض حاليا')));
                           }
                           setState(() {
                             isLoading = false;

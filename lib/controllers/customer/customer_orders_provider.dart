@@ -127,6 +127,7 @@ class CustomerOrdersProvider with ChangeNotifier {
     required int addressId,
     required String date,
     required String time,
+    required String status,
     required List<File>? serviceImages,
     int? provider_id
   }) async {
@@ -151,6 +152,7 @@ class CustomerOrdersProvider with ChangeNotifier {
         "address_id": addressId.toString(),
         "date": date,
         "time": time,
+        "service_status" : status,
         "provider_id":provider_id.toString()
       });
 
@@ -196,6 +198,7 @@ class CustomerOrdersProvider with ChangeNotifier {
     }
     return handledResponse;
   }
+
 
   Future<ResponseHandler<ServiceDetails>> fetchSingleCustomerService(
       int serviceId) async {

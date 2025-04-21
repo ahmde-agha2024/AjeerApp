@@ -38,11 +38,11 @@ class _CarouselSliderHomeState extends State<CarouselSliderHome> {
           items: widget.slides.map((slide) {
             return InkWell(
               onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => PhotoZoomScreen(
-                          imagePath: slide.image,
-                          userName: slide.title,
-                        )));
+                // Navigator.of(context).push(MaterialPageRoute(
+                //     builder: (context) => PhotoZoomScreen(
+                //           imagePath: slide.image,
+                //           userName: slide.title,
+                //         )));
               },
               child: Row(
                 children: [

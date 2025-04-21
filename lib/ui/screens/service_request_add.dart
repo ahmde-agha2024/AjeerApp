@@ -293,13 +293,15 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                                 .addresses!
                                 .map((e) => DropdownMenuItem<int>(
                                     value: e.id,
-                                    child: Column(
-                                      children: [
-                                        Text('${e.title!} - ${e.address!}'),
-                                        const Divider(
-                                          color: Colors.grey,
-                                        ),
-                                      ],
+                                    child: SingleChildScrollView(
+                                      child: Column(
+                                        children: [
+                                          Text('${e.title!} - ${e.address!}'),
+                                          const Divider(
+                                            color: Colors.grey,
+                                          ),
+                                        ],
+                                      ),
                                     )))
                                 .toList(),
                             onChanged: (value) {
@@ -308,17 +310,18 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                               });
                             },
                           ),
-                     Align(
-                       alignment: Alignment.bottomLeft,
+                    Align(
+                      alignment: Alignment.bottomLeft,
                       child: TextButton(
-
                           onPressed: () {
-                            Navigator.of(context).push(
-                                MaterialPageRoute(builder: (context) => AddAddressScreen()));
-                          }, child: Text("قم بإضافة عنوان",style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12
-                      ),)),
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => AddAddressScreen()));
+                          },
+                          child: Text(
+                            "قم بإضافة عنوان",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 12),
+                          )),
                     ),
                     const SizedBox(height: 16),
                     LabelText(text: 'صور المشكلة'.tr()),
@@ -460,6 +463,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                                   // show toast
                                   ScaffoldMessenger.of(context)
                                       .showSnackBar(const SnackBar(
+                                    behavior: SnackBarBehavior.floating,
                                     content: Text(
                                         'يجب إضافة صورة واحدة على الأقل'), // TODO: TRANSLATE THIS
                                   ));
@@ -468,6 +472,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                                   // show toast
                                   ScaffoldMessenger.of(context)
                                       .showSnackBar(const SnackBar(
+                                    behavior: SnackBarBehavior.floating,
                                     content: Text(
                                         'يجب اختيار التصنيف الفرعي'), // TODO: TRANSLATE THIS
                                   ));
@@ -482,6 +487,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                                         .of<CustomerOrdersProvider>(context,
                                             listen: false)
                                     .requestNewService(
+                                        status: "NEW_OFFER",
                                         title: _offerNameController.text,
                                         content:
                                             _offerDescriptionController.text,
@@ -502,17 +508,20 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                                 if (handledResponse.status ==
                                     ResponseStatus.success) {
                                   // show toast
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(SnackBar(
-                                    content: Text(
-                                        'تم إضافة المشروع بنجاح'), // TODO: TRANSLATE THIS
-                                  ));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('تم إضافة المشروع بنجاح'),
+                                      behavior: SnackBarBehavior.floating,
+
+                                    ),
+                                  );
                                   _showAlertDialog(context);
                                   Navigator.of(context).pop();
                                 } else if (handledResponse.errorMessage !=
                                     null) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
+                                        behavior: SnackBarBehavior.floating,
                                         content: Text(handledResponse
                                             .errorMessage!
                                             .tr())),
@@ -521,6 +530,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                                   // show toast
                                   ScaffoldMessenger.of(context)
                                       .showSnackBar(const SnackBar(
+                                    behavior: SnackBarBehavior.floating,
                                     content: Text(
                                         'Error Occurred'), // TODO: TRANSLATE THIS
                                   ));

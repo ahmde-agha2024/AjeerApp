@@ -13,6 +13,7 @@ import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 import '../../../constants/my_colors.dart';
+import '../../../controllers/general/statusprovider.dart';
 import '../../widgets/button_styles.dart';
 import '../../widgets/my_requests/appbar_my_requests.dart';
 
@@ -330,8 +331,9 @@ class _ServiceWorkingOnCardState extends State<ServiceWorkingOnCard> {
 
   @override
   Widget build(BuildContext context) {
+    print(widget.service.service_status);
     String statusStringShowingToUser = '';
-    if (widget.service.status == 'OFFER_ACCEPTED') {
+    if (widget.service.service_status == 'NEW_OFFER') {
       statusStringShowingToUser = 'تم قبول الطلب';
     } else if (widget.service.status == 'OFFER_REJECTED') {
       statusStringShowingToUser = 'تم رفض الطلب';
@@ -350,7 +352,7 @@ class _ServiceWorkingOnCardState extends State<ServiceWorkingOnCard> {
     } else if (widget.service.status == 'OFFER_CANCELED_BY_ADMIN') {
       statusStringShowingToUser = 'تم الغاء الطلب من قبل الادارة';
     } else {
-      statusStringShowingToUser = 'غير معروف';
+      //statusStringShowingToUser = 'غير معروف';
     }
     return Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -387,7 +389,7 @@ class _ServiceWorkingOnCardState extends State<ServiceWorkingOnCard> {
             ),
             title: Text(widget.service.title!),
             subtitle: Text('طلب رقم : #${widget.service.id!}'),
-            trailing: Card(
+            trailing: statusStringShowingToUser=="" ?SizedBox():Card(
               color: MyColors.CardBackgroundNew,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8)),
@@ -402,6 +404,7 @@ class _ServiceWorkingOnCardState extends State<ServiceWorkingOnCard> {
               ),
             ),
           ),
+
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 12),
             child: Opacity(opacity: 0.5, child: Divider()),
@@ -412,6 +415,7 @@ class _ServiceWorkingOnCardState extends State<ServiceWorkingOnCard> {
               leading: SvgPicture.asset('assets/svg/calender.svg'),
               title: Text(widget.service.date ?? 'غير محدد'),
               subtitle: Text('الساعة ${widget.service.time ?? '00:00'}'),
+
             ),
           ),
           Padding(

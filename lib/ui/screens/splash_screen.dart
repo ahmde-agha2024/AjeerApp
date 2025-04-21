@@ -75,7 +75,7 @@ class _SplashScreenState extends State<SplashScreen> {
   // );
 
   loadSplashScreen() {
-    Timer.periodic(const Duration(milliseconds: 500), (Timer timer) {
+    Timer.periodic(const Duration(seconds: 1), (Timer timer) {
       timer.cancel();
       // check if user already seen onboarding screen
       final String? seenOnBoarding = storage.read('seen_onboarding');

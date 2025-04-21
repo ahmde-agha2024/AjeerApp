@@ -245,29 +245,32 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
   Widget _buildSentMessage({required String message, required String time}) {
     return Align(
       alignment: Alignment.centerRight,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            margin: const EdgeInsets.symmetric(vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.redAccent,
-              borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.redAccent,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                message,
+                style: const TextStyle(color: Colors.white),
+              ),
             ),
-            child: Text(
-              message,
-              style: const TextStyle(color: Colors.white),
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Text(
+                time,
+                style: const TextStyle(color: Colors.grey, fontSize: 10),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 4),
-            child: Text(
-              time,
-              style: const TextStyle(color: Colors.grey, fontSize: 10),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -276,38 +279,41 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
       {required String message, required String time}) {
     return Align(
       alignment: Alignment.centerLeft,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Spacer(), // هذا يضمن أن الرسالة تبدأ بعد منتصف الشاشة
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                margin: const EdgeInsets.symmetric(vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Spacer(), // هذا يضمن أن الرسالة تبدأ بعد منتصف الشاشة
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(message),
                 ),
-                child: Text(message),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 4),
-                child: Text(
-                  time,
-                  style: const TextStyle(color: Colors.grey, fontSize: 10),
+                Padding(
+                  padding: const EdgeInsets.only(left: 4),
+                  child: Text(
+                    time,
+                    style: const TextStyle(color: Colors.grey, fontSize: 10),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 8), // مساحة فارغة بين الصورة والنص
-          CircleAvatar(
-            backgroundImage: NetworkImage(amIProvider
-                ? widget.chatHead!.customer!.image!
-                : widget.chatHead!.provider!.image!),
-          ),
-        ],
+              ],
+            ),
+            const SizedBox(width: 8), // مساحة فارغة بين الصورة والنص
+            CircleAvatar(
+              backgroundImage: NetworkImage(amIProvider
+                  ? widget.chatHead!.customer!.image!
+                  : widget.chatHead!.provider!.image!),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -348,7 +354,7 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
 
   Widget _buildMessageInputField() {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           IconButton(

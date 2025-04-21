@@ -7,6 +7,7 @@ import '../provider/home/provider_home_model.dart';
 
 ServiceResponse serviceResponseFromJson(String str) =>
     ServiceResponse.fromJson(json.decode(str));
+
 List<Service> servicesListFromJson(List jsonList) =>
     List<Service>.from(jsonList.map((x) => Service.fromJson(x)));
 
@@ -44,6 +45,7 @@ class Service {
   int? stars;
   int? views;
   String? status;
+  String? service_status;
   bool? isRated;
   int? featured;
   int? private;
@@ -69,6 +71,7 @@ class Service {
     this.stars,
     this.views,
     this.status,
+    this.service_status,
     this.featured,
     this.private,
     this.lat,
@@ -105,6 +108,7 @@ class Service {
         stars: json["stars"],
         views: json["views"],
         status: json["status"],
+        service_status: json["service_status"],
         featured: json["featured"],
         private: json["private"],
         lat: json["lat"],
@@ -115,6 +119,5 @@ class Service {
             ? null
             : DateTime.parse(json["created_at"]),
         isRated: json["israte"],
-
       );
 }

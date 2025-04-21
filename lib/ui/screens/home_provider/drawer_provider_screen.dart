@@ -273,33 +273,44 @@ class _CustomDrawerState extends State<CustomDrawer> {
                             buildMenuItem(
                               icon: Icons.delete_outline,
                               label: 'حذف الحساب',
-                              onTap: () {
-                                showDialog(
+                              onTap: () async{
+                                bool? confirmDelete = await showDialog<bool>(
                                   context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      title: const Text('حذف الحساب'),
-                                      content:
-                                          const Text('هل تريد حقًا حذف حسابك؟'),
+                                  builder: (context) => Directionality(
+                                    textDirection: TextDirection.rtl,
+                                    child: AlertDialog(
+                                      title: Align(
+                                        alignment: Alignment.centerRight,
+                                        child: Text('الدعم الفني'),
+                                      ),
+                                      content: Text(
+                                        'للحفاظ على أمان بياناتك وضمان تجربة أفضل، يُرجى التواصل مع فريق الدعم الفني لإتمام عملية حذف الحساب.',
+                                        textAlign: TextAlign.right,
+                                      ),
                                       actions: [
                                         TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                          child: const Text('إلغاء'),
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(false),
+                                          child: Text('إلغاء'),
                                         ),
                                         TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                          child: const Text('حذف',
-                                              style:
-                                                  TextStyle(color: Colors.red)),
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(true),
+                                          child: Text('موافق',
+                                              style: TextStyle(color: Colors.red)),
                                         ),
                                       ],
-                                    );
-                                  },
+                                    ),
+                                  ),
                                 );
+
+                                // If user confirmed deletion
+                                if (confirmDelete == true) {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => AboutAppScreen()));
+                                }
                               },
                             ),
                             // const Spacer(),

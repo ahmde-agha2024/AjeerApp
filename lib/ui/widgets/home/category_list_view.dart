@@ -11,10 +11,11 @@ class CategoryListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Padding(
       padding: const EdgeInsetsDirectional.only(start: 16),
       child: SizedBox(
-        height: 124,
+        height: 220,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           itemCount: categories.length,

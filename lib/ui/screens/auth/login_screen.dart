@@ -208,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   SnackBar(
                                       backgroundColor: Color(0xffBF3131),
                                       content: Text(
-                                        response.errorMessage!.tr(),
+                                        response.errorMessage!,
                                         style:
                                             TextStyle(color: Color(0xffEEEEEE)),
                                       )),

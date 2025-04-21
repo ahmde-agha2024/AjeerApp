@@ -45,7 +45,7 @@ class ProviderOffersProvider with ChangeNotifier {
     return handledResponse;
   }
 
-  Future<ResponseHandler> createOfferForServiceRequest({required int serviceId, required double price, required String content}) async {
+  Future<ResponseHandler> createOfferForServiceRequest({required int serviceId, required double price, required String content, required String date, required DateTime time}) async {
     ResponseHandler handledResponse = ResponseHandler(status: ResponseStatus.error);
 
     String url = '${BaseURL.baseServiceProviderUrl}/offer';
@@ -57,7 +57,7 @@ class ProviderOffersProvider with ChangeNotifier {
           'Content-Type': 'application/x-www-form-urlencoded',
           'authorization': 'Bearer $_accessToken',
         },
-        body: 'service_id=$serviceId&price=$price&content=$content',
+        body: 'service_id=$serviceId&price=$price&content=$content&date=$date&time=${(DateFormat('HH:mm').format(time))}',
       );
 
       if (!await checkResponseHttp(response)) {
