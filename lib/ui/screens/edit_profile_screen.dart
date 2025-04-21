@@ -16,6 +16,7 @@ import '../widgets/button_styles.dart';
 import '../widgets/input_decoration.dart';
 import '../widgets/input_label.dart';
 import '../widgets/sized_box.dart';
+import 'about_app_screen.dart';
 import 'auth/auth_screen.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -363,58 +364,42 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: TextButton(
                       style: flatButtonStyle,
                       onPressed: () async {
-                        // Show confirmation dialog
                         bool? confirmDelete = await showDialog<bool>(
                           context: context,
-                          builder: (context) => AlertDialog(
-                            title: Text('تأكيد الحذف'.tr()),
-                            content: Text('هل أنت متأكد من حذف الحساب؟'.tr()),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(false),
-                                child: Text('إلغاء'.tr()),
+                          builder: (context) => Directionality(
+                            textDirection: TextDirection.rtl,
+                            child: AlertDialog(
+                              title: Align(
+                                alignment: Alignment.centerRight,
+                                child: Text('الدعم الفني'),
                               ),
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(true),
-                                child: Text('حذف'.tr(), style: TextStyle(color: Colors.red)),
+                              content: Text(
+                                'للحفاظ على أمان بياناتك وضمان تجربة أفضل، يُرجى التواصل مع فريق الدعم الفني لإتمام عملية حذف الحساب.',
+                                textAlign: TextAlign.right,
                               ),
-                            ],
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(false),
+                                  child: Text('إلغاء'),
+                                ),
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(true),
+                                  child: Text('موافق',
+                                      style: TextStyle(color: Colors.red)),
+                                ),
+                              ],
+                            ),
                           ),
                         );
 
                         // If user confirmed deletion
                         if (confirmDelete == true) {
-                          ResponseHandler handledResponse =
-                              await Provider.of<Auth>(context, listen: false)
-                                  .deleteAccount();
-
-                          if (handledResponse.status == ResponseStatus.success) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'تم حذف الحساب بنجاح'.tr(),
-                                ),
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  handledResponse.errorMessage ??
-                                      'حدث خطأ أثناء حذف الحساب'.tr(),
-                                ),
-                                backgroundColor: MyColors.MainBulma,
-                              ),
-                            );
-                          }
-
-                          Future.delayed(const Duration(seconds: 1), () {
-                            navigatorKey.currentState!.pushAndRemoveUntil(
+                          Navigator.push(
+                              context,
                               MaterialPageRoute(
-                                  builder: (context) => const AuthScreen()),
-                              (route) => false,
-                            );
-                          });
+                                  builder: (context) => AboutAppScreen()));
                         }
                       },
                       child: Text(
