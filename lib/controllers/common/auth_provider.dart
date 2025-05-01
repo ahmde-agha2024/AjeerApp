@@ -104,7 +104,46 @@ class Auth with ChangeNotifier {
         },
         body: 'phone=$phoneNumber',
       );
+print(response.statusCode);
+      if (response.statusCode == 200) {
+        handledResponse.status = ResponseStatus.success;
+      } else if (response.statusCode == 422 &&
+          jsonDecode(response.body)['message'] != null) {
+        handledResponse.status = ResponseStatus.failure;
+        handledResponse.errorMessage = jsonDecode(response.body)['message'];
+      } else {
+        handledResponse.status = ResponseStatus.notFound;
+      }
 
+      logMessage(
+          location: 'customerSendOTP RESPONSE STATUS CODE',
+          message: response.statusCode);
+      logMessage(
+          location: 'customerSendOTP RESPONSE',
+          message: response.body.toString());
+    } catch (e) {
+      logMessage(location: 'ERROR ON customerSendOTP', message: e.toString());
+      handledResponse.status = ResponseStatus.error;
+    }
+
+    return handledResponse;
+  }
+
+  Future<ResponseHandler> sendOTPNew({required String phoneNumber}) async {
+    ResponseHandler handledResponse =
+    ResponseHandler(status: ResponseStatus.error);
+    String url =
+        '${_isProvider && !isClient ? BaseURL.baseServiceProviderUrl : BaseURL.baseCustomerUrl}/sendotp';
+    try {
+      var response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'phone=$phoneNumber',
+      );
+      print(response.statusCode);
       if (response.statusCode == 200) {
         handledResponse.status = ResponseStatus.success;
       } else if (response.statusCode == 422 &&
@@ -143,6 +182,49 @@ class Auth with ChangeNotifier {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: 'phone=$phoneNumber&otp=$otp',
+      );
+
+      if (response.statusCode == 200) {
+        handledResponse.status = ResponseStatus.success;
+        _accessToken = jsonDecode(response.body)['access_token'];
+        storage.write('token', _accessToken);
+        notifyListeners();
+        await getCustomerUserInfo();
+      } else if (jsonDecode(response.body)['message'] != null) {
+        handledResponse.status = ResponseStatus.failure;
+        handledResponse.errorMessage = jsonDecode(response.body)['message'];
+      } else {
+        handledResponse.status = ResponseStatus.notFound;
+      }
+
+      logMessage(
+          location: 'verifyAccount RESPONSE STATUS CODE',
+          message: response.statusCode);
+      logMessage(
+          location: 'verifyAccount RESPONSE',
+          message: response.body.toString());
+    } catch (e) {
+      logMessage(location: 'ERROR ON verifyAccount', message: e.toString());
+      handledResponse.status = ResponseStatus.error;
+    }
+
+    return handledResponse;
+  }
+
+  Future<ResponseHandler> CheckOtp(
+      {required String phoneNumber, required String otp}) async {
+    ResponseHandler handledResponse =
+    ResponseHandler(status: ResponseStatus.error);
+    String url =
+        '${_isProvider && !isClient ? BaseURL.baseServiceProviderUrl : BaseURL.baseCustomerUrl}/checkotp';
+    try {
+      var response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'phone=$phoneNumber&message=$otp',
       );
 
       if (response.statusCode == 200) {
@@ -233,7 +315,8 @@ class Auth with ChangeNotifier {
         },
         body: 'phone=$phoneNumber&password=$password',
       );
-
+      print(response.statusCode);
+      print(response.body);
       if (response.statusCode == 200) {
         handledResponse.status = ResponseStatus.success;
         _accessToken = jsonDecode(response.body)['access_token'];
@@ -260,22 +343,21 @@ class Auth with ChangeNotifier {
     // changeIsLoading(false);
   }
 
-  Future<ResponseHandler> signUpAsProvider({
-    required String fullName,
-    required String phoneNumber,
-    required String password,
-    required String passwordConfirmation,
-    required File idFront,
-    // required File idBack,
-    required File idSelfie,
-    required int categoryId,
-    //required List<int> subCategoryIds,
-    required String about,
-    required String invite_link,
-    // required File image,
-    required int cityId,
-    required String passport
-  }) async {
+  Future<ResponseHandler> signUpAsProvider(
+      {required String fullName,
+      required String phoneNumber,
+      required String password,
+      required String passwordConfirmation,
+      required File idFront,
+      // required File idBack,
+      required File idSelfie,
+      required int categoryId,
+      //required List<int> subCategoryIds,
+      required String about,
+      required String invite_link,
+      // required File image,
+      required int cityId,
+      required String passport}) async {
     ResponseHandler handledResponse =
         ResponseHandler(status: ResponseStatus.error);
     String url = '${BaseURL.baseServiceProviderUrl}/register';
@@ -291,8 +373,8 @@ class Auth with ChangeNotifier {
         'password_confirmation': passwordConfirmation,
         'category_id': categoryId.toString(),
         'about': about,
-        'passport':passport,
-        'invite_token':invite_link,
+        'passport': passport,
+        'invite_token': invite_link,
         'city_id': cityId.toString(),
         // for (int i = 0; i < subCategoryIds.length; i++)
         //   'subcategory[$i]': subCategoryIds[i].toString(),
@@ -312,30 +394,27 @@ class Auth with ChangeNotifier {
       //     filename: image.path.split('/').last));
 
       http.StreamedResponse response = await request.send();
-print(response.statusCode);
+      print(response.statusCode);
       if (response.statusCode == 200) {
         handledResponse.status = ResponseStatus.success;
-      } else if (response.statusCode == 422 &&
-          jsonDecode(await response.stream.bytesToString())['message'] ==
-              "قيمة الهاتف مُستخدمة من قبل") {
+      } else if (response.statusCode == 422 ) {
         handledResponse.status = ResponseStatus.duplicate;
         handledResponse.errorMessage =
             jsonDecode(await response.stream.bytesToString())['message'];
+
+        print(handledResponse.errorMessage);
       } else {
         handledResponse.status = ResponseStatus.error;
         handledResponse.errorMessage =
             jsonDecode(await response.stream.bytesToString())['message'];
+        print(errorMessage);
       }
+      print(errorMessage);
 
-      logMessage(
-          location: 'signUpAsProvider RESPONSE STATUS CODE',
-          message: response.statusCode);
-      logMessage(
-          location: 'signUpAsProvider RESPONSE',
-          message: await response.stream.bytesToString());
     } catch (e) {
       logMessage(location: 'ERROR ON signUpAsProvider', message: e.toString());
       handledResponse.status = ResponseStatus.error;
+      print(errorMessage);
     }
 
     return handledResponse;
@@ -551,9 +630,8 @@ print(response.statusCode);
         _provider =
             serviceProviderAccountFromJson(jsonDecode(response.body)['data']);
 
-
-        storage.write('id_provider',_provider!.id);
-        storage.write('wallet_provider',_provider!.wallet);
+        storage.write('id_provider', _provider!.id);
+        storage.write('wallet_provider', _provider!.wallet);
         await setProviderUserInfo(_provider!);
       }
 
@@ -641,5 +719,33 @@ print(response.statusCode);
     }
 
     return handledResponse;
+  }
+
+  Future<ResponseHandler> checkPhoneNumber(String phoneNumber) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${isProvider && !isClient ? BaseURL.baseServiceProviderUrl : BaseURL.baseCustomerUrl}/otp'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: 'phone=$phoneNumber',
+      );
+
+      if (response.statusCode == 200) {
+        return ResponseHandler(status: ResponseStatus.success);
+      } else if (response.statusCode == 404) {
+        return ResponseHandler(status: ResponseStatus.error);
+      } else {
+        return ResponseHandler(
+          status: ResponseStatus.error,
+          errorMessage: 'حدث خطأ أثناء التحقق من رقم الهاتف',
+        );
+      }
+    } catch (e) {
+      return ResponseHandler(
+        status: ResponseStatus.error,
+        errorMessage: 'حدث خطأ أثناء التحقق من رقم الهاتف',
+      );
+    }
   }
 }

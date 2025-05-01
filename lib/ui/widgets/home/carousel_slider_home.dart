@@ -1,4 +1,7 @@
+import 'package:ajeer/models/common/category_model.dart';
 import 'package:ajeer/models/customer/provider/slider_model.dart';
+import 'package:ajeer/ui/screens/home_client/all_categories_screen.dart'
+    show AllCategoriesScreen;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
@@ -8,14 +11,18 @@ import '../../screens/photo_zoom_screen.dart';
 
 class CarouselSliderHome extends StatefulWidget {
   List<SliderModel> slides;
-  CarouselSliderHome({super.key, required this.slides});
+  List<Category>? catergoryTitle;
+
+  CarouselSliderHome({super.key, required this.slides, this.catergoryTitle});
+
   @override
   _CarouselSliderHomeState createState() => _CarouselSliderHomeState();
 }
 
 class _CarouselSliderHomeState extends State<CarouselSliderHome> {
   int _currentSlide = 0;
-  final CarouselSliderController _carouselController = CarouselSliderController();
+  final CarouselSliderController _carouselController =
+      CarouselSliderController();
 
   @override
   Widget build(BuildContext context) {
@@ -43,13 +50,28 @@ class _CarouselSliderHomeState extends State<CarouselSliderHome> {
                 //           imagePath: slide.image,
                 //           userName: slide.title,
                 //         )));
+                if (slide.type == "customer")
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => AllCategoriesScreen(
+                        scrollToCategory: widget.catergoryTitle!
+                            .firstWhere(
+                              (category) => category.id == slide.categoryId,
+                              orElse: () => widget.catergoryTitle!.first,
+                            )
+                            .title,
+                      ),
+                    ),
+                  );
               },
               child: Row(
                 children: [
                   SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.88, // Ensure the child has a width
+                    width: MediaQuery.of(context).size.width *
+                        0.88, // Ensure the child has a width
                     child: ClipRRect(
-                      borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(8.0)),
                       child: Stack(
                         children: <Widget>[
                           CachedNetworkImage(
@@ -61,7 +83,8 @@ class _CarouselSliderHomeState extends State<CarouselSliderHome> {
                                 child: CircularProgressIndicator(
                               color: MyColors.MainBulma,
                             )),
-                            errorWidget: (context, url, error) => const Icon(Icons.error),
+                            errorWidget: (context, url, error) =>
+                                const Icon(Icons.error),
                           ),
                           Positioned(
                             bottom: 0.0,
@@ -70,12 +93,16 @@ class _CarouselSliderHomeState extends State<CarouselSliderHome> {
                             child: Container(
                               decoration: const BoxDecoration(
                                 gradient: LinearGradient(
-                                  colors: [Color.fromARGB(200, 0, 0, 0), Color.fromARGB(0, 0, 0, 0)],
+                                  colors: [
+                                    Color.fromARGB(200, 0, 0, 0),
+                                    Color.fromARGB(0, 0, 0, 0)
+                                  ],
                                   begin: Alignment.bottomCenter,
                                   end: Alignment.topCenter,
                                 ),
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 16.0, horizontal: 16.0),
                               child: Text(
                                 slide.title,
                                 style: const TextStyle(
@@ -107,8 +134,12 @@ class _CarouselSliderHomeState extends State<CarouselSliderHome> {
               width: _currentSlide == index ? 24 : 8,
               height: 8,
               decoration: BoxDecoration(
-                color: _currentSlide == index ? MyColors.MainBulma : MyColors.LightDark,
-                borderRadius: _currentSlide == index ? BorderRadius.circular(4) : BorderRadius.circular(50),
+                color: _currentSlide == index
+                    ? MyColors.MainBulma
+                    : MyColors.LightDark,
+                borderRadius: _currentSlide == index
+                    ? BorderRadius.circular(4)
+                    : BorderRadius.circular(50),
                 border: _currentSlide == index
                     ? Border.all(
                         color: MyColors.MainBulma,

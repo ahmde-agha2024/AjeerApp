@@ -1,10 +1,13 @@
 import 'package:ajeer/constants/utils.dart';
 import 'package:ajeer/controllers/service_provider/provider_home_page_provider.dart';
+import 'package:ajeer/models/customer/home/home_model.dart' show CustomerHome;
 import 'package:ajeer/models/customer/service_model.dart';
 import 'package:ajeer/models/customer/service_provider_model.dart';
 import 'package:ajeer/models/provider/home/provider_home_model.dart';
 import 'package:ajeer/ui/widgets/common/error_widget.dart';
 import 'package:ajeer/ui/widgets/common/loader_widget.dart';
+import 'package:ajeer/ui/widgets/home/carousel_slider_home.dart'
+    show CarouselSliderHome;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -36,7 +39,7 @@ class HomeProviderScreen extends StatefulWidget {
 class _HomeProviderScreenState extends State<HomeProviderScreen> {
   bool _isFetched = false;
   ResponseHandler<ProviderHomePage>? _providerHome;
-
+  ResponseHandler<CustomerHome>? _customerHome;
 
   @override
   void didChangeDependencies() {
@@ -48,31 +51,31 @@ class _HomeProviderScreenState extends State<HomeProviderScreen> {
 
   Future<void> _fetchProviderHomeData() async {
     final fetchedData =
-    await Provider.of<ProviderHomePageProvider>(context, listen: false)
-        .fetchProviderHomePage();
+        await Provider.of<ProviderHomePageProvider>(context, listen: false)
+            .fetchProviderHomePage();
     if (!mounted) return;
 
     setState(() {
       _providerHome = fetchedData;
       _isFetched = true;
     });
-    await storage.write('verified_provider', fetchedData.response!.providerAccount!.id_verifed);
+    await storage.write(
+        'verified_provider', fetchedData.response!.providerAccount!.id_verifed);
+    await storage.write(
+        'offer_count', fetchedData.response!.providerAccount!.offerCount);
+    await storage.write(
+        'provider_id', fetchedData.response!.providerAccount!.id);
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Stack(
       children: [
         BackgroundAppbarHome(
           imageAssetPath: 'assets/Icons/home_background.jpeg',
-          height: MediaQuery
-              .of(context)
-              .size
-              .height,
-          width: MediaQuery
-              .of(context)
-              .size
-              .width,
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
         ),
         Column(
           children: [
@@ -83,135 +86,159 @@ class _HomeProviderScreenState extends State<HomeProviderScreen> {
             ),
             Expanded(
                 child: ClipRRect(
-                  borderRadius: topBorderRadiusCard,
-                  child: RefreshIndicator(
-                    onRefresh: _fetchProviderHomeData,
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      child: !_isFetched
-                          ? loaderWidget(context, type: 'home')
-                          : _providerHome!.status == ResponseStatus.error
+              borderRadius: topBorderRadiusCard,
+              child: RefreshIndicator(
+                onRefresh: _fetchProviderHomeData,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: !_isFetched
+                      ? loaderWidget(context, type: 'home')
+                      : _providerHome!.status == ResponseStatus.error
                           ? _buildErrorWidget()
                           : Card(
-                        color: Colors.white,
-                        margin: EdgeInsets.zero,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: topBorderRadiusCard),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: Column(
-                            children: [
-                              SizedBoxedH16,
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment
-                                      .spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: BuildStatsCard(
-                                        'العروض المتاحة لي',
-                                        _providerHome!.response!.stats!
-                                            .offerCount!.toString(),
-                                        Colors.redAccent,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: BuildStatsCard(
-                                        'العروض المقدمة',
-                                        _providerHome!.response!.stats!
-                                            .offersCount!.toString(),
-                                        Colors.black,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-
-                              // الأشهر
-                              TitleSections(
-                                title: 'احصائيات',
-                                isViewAll: false,
-                                onTapView: () {},
-                              ),
-                              const SizedBox(height: 16),
-                              // المخطط البياني
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16),
-                                child: SizedBox(
-                                  height: MediaQuery
-                                      .of(context)
-                                      .size
-                                      .height * 0.5,
-                                  child: BuildChart(
-                                      _providerHome!.response!.chart),
-                                ),
-                              ),
-
-                              // التوضيحات
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16),
+                              color: Colors.white,
+                              margin: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: topBorderRadiusCard),
+                              child: SizedBox(
+                                width: double.infinity,
                                 child: Column(
-                                  mainAxisAlignment: MainAxisAlignment
-                                      .spaceBetween,
                                   children: [
-                                    BuildLegendItem(
-                                      'جار التنفيذ',
-                                      Colors.grey,
-                                      _providerHome!.response!.stats!
-                                          .workingServices!.toString(),
+                                    SizedBoxedH16,
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: BuildStatsCard(
+                                              'العروض المتاحة لي',
+                                              _providerHome!
+                                                  .response!.stats!.offerCount!
+                                                  .toString(),
+                                              Colors.redAccent,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: BuildStatsCard(
+                                              'العروض المقدمة',
+                                              _providerHome!
+                                                  .response!.stats!.offersCount!
+                                                  .toString(),
+                                              Colors.black,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    BuildLegendItem(
-                                      'العروض المقبولة',
-                                      Colors.redAccent,
-                                      _providerHome!.response!.stats!
-                                          .acceptedOffers!.toString(),
+                                    const SizedBox(height: 24),
+
+                                    // Filter sliders by type
+                                    if (_providerHome!.response!.sliders !=
+                                        null) ...[
+                                      if (_providerHome!.response!.sliders!.any(
+                                          (slider) =>
+                                              slider.type == "provider"))
+                                        CarouselSliderHome(
+                                          slides: _providerHome!
+                                              .response!.sliders!
+                                              .where((slider) =>
+                                                  slider.type == "provider")
+                                              .toList(),
+                                          catergoryTitle: _providerHome!
+                                              .response!.categories,
+                                        ),
+                                    ],
+
+                                    // الأشهر
+                                    TitleSections(
+                                      title: 'احصائيات',
+                                      isViewAll: false,
+                                      onTapView: () {},
                                     ),
-                                    BuildLegendItem(
-                                      'الطلبات المنتهية',
-                                      Colors.black,
-                                      _providerHome!.response!.stats!
-                                          .doneServices!.toString(),
+                                    const SizedBox(height: 16),
+                                    // المخطط البياني
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16),
+                                      child: SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.5,
+                                        child: BuildChart(
+                                            _providerHome!.response!.chart),
+                                      ),
+                                    ),
+
+                                    // التوضيحات
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          BuildLegendItem(
+                                            'جار التنفيذ',
+                                            Colors.grey,
+                                            _providerHome!.response!.stats!
+                                                .workingServices!
+                                                .toString(),
+                                          ),
+                                          BuildLegendItem(
+                                            'العروض المقبولة',
+                                            Colors.redAccent,
+                                            _providerHome!.response!.stats!
+                                                .acceptedOffers!
+                                                .toString(),
+                                          ),
+                                          BuildLegendItem(
+                                            'الطلبات المنتهية',
+                                            Colors.black,
+                                            _providerHome!
+                                                .response!.stats!.doneServices!
+                                                .toString(),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBoxedH16,
+                                    Divider(
+                                        color: Colors.grey.withOpacity(0.1),
+                                        thickness: 10),
+                                    SizedBoxedH16,
+
+                                    TitleSections(
+                                      title: 'العروض الاخيرة',
+                                      isViewAll: false,
+                                      onTapView: () {},
+                                    ),
+                                    SizedBoxedH16,
+                                    ListView.builder(
+                                      itemCount: _providerHome!
+                                          .response!.latestServices!.length,
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      shrinkWrap: true,
+                                      itemBuilder: (ctx, index) {
+                                        return LatestServiceCard(
+                                          serviceDetails: _providerHome!
+                                              .response!.latestServices![index],
+                                          verified: _providerHome!.response!
+                                              .providerAccount!.id_verifed,
+                                        );
+                                      },
                                     ),
                                   ],
                                 ),
                               ),
-                              SizedBoxedH16,
-                              Divider(color: Colors.grey.withOpacity(0.1),
-                                  thickness: 10),
-                              SizedBoxedH16,
-
-                              TitleSections(
-                                title: 'العروض الاخيرة',
-                                isViewAll: false,
-                                onTapView: () {},
-                              ),
-                              SizedBoxedH16,
-                              ListView.builder(
-                                itemCount: _providerHome!.response!
-                                    .latestServices!.length,
-                                physics: const NeverScrollableScrollPhysics(),
-                                shrinkWrap: true,
-                                itemBuilder: (ctx, index) {
-                                  return LatestServiceCard(
-                                     serviceDetails: _providerHome!.response!
-                                        .latestServices![index],
-                                    verified:_providerHome!.response!.providerAccount!.id_verifed ,
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                )),
+                            ),
+                ),
+              ),
+            )),
           ],
         ),
       ],
@@ -224,31 +251,29 @@ class _HomeProviderScreenState extends State<HomeProviderScreen> {
       children: [
         errorWidget(context),
         Builder(
-          builder: (context) =>
-              MaterialButton(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
+          builder: (context) => MaterialButton(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            color: MyColors.MainBulma,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+              child: Text(
+                'Try Again'.tr(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
-                color: MyColors.MainBulma,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 16, horizontal: 12),
-                  child: Text(
-                    'Try Again'.tr(),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                onPressed: () {
-                  setState(() {
-                    _isFetched = false;
-                    _fetchProviderHomeData();
-                  });
-                },
               ),
+            ),
+            onPressed: () {
+              setState(() {
+                _isFetched = false;
+                _fetchProviderHomeData();
+              });
+            },
+          ),
         ),
       ],
     );
@@ -289,18 +314,17 @@ class LatestServiceCard extends StatefulWidget {
   int? verified;
 
   LatestServiceCard(
-      {super.key, required this.serviceDetails,required this.verified});
+      {super.key, required this.serviceDetails, required this.verified});
 
   @override
   State<LatestServiceCard> createState() => _LatestServiceCardState();
 }
 
 class _LatestServiceCardState extends State<LatestServiceCard> {
-
   @override
   Widget build(BuildContext context) {
-print('widget.verified');
-print(widget.verified);
+    print('widget.verified');
+    print(widget.verified);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -308,10 +332,7 @@ print(widget.verified);
         color: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: SizedBox(
-          width: MediaQuery
-              .of(context)
-              .size
-              .width * 0.9,
+          width: MediaQuery.of(context).size.width * 0.9,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -332,7 +353,7 @@ print(widget.verified);
               Expanded(
                 child: Padding(
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
@@ -388,17 +409,19 @@ print(widget.verified);
                               width: double.infinity,
                               child: TextButton(
                                 style: flatButtonPrimaryStyle,
-                                onPressed:widget.verified==1? () async {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          RequestOfferProviderScreen(
-                                            serviceDetails: widget
-                                                .serviceDetails,
+                                onPressed: widget.verified == 1
+                                    ? () async {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                RequestOfferProviderScreen(
+                                              serviceDetails:
+                                                  widget.serviceDetails,
+                                            ),
                                           ),
-                                    ),
-                                  );
-                                }:null,
+                                        );
+                                      }
+                                    : null,
                                 child: Text(
                                   'تقديم'.tr(),
                                   style: const TextStyle(
@@ -420,9 +443,8 @@ print(widget.verified);
                                     MaterialPageRoute(
                                       builder: (context) =>
                                           RequestDetailsProviderScreen(
-                                            loadedService: widget
-                                                .serviceDetails,
-                                          ),
+                                        loadedService: widget.serviceDetails,
+                                      ),
                                     ),
                                   );
                                 },

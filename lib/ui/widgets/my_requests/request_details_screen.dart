@@ -1,5 +1,7 @@
 import 'package:ajeer/constants/utils.dart';
 import 'package:ajeer/controllers/customer/customer_orders_provider.dart';
+import 'package:ajeer/controllers/service_provider/provider_home_page_provider.dart'
+    show ProviderHomePageProvider;
 import 'package:ajeer/models/common/chat_model.dart';
 import 'package:ajeer/models/common/service_details_model.dart';
 import 'package:ajeer/models/customer/service_model.dart';
@@ -13,17 +15,29 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:localize_and_translate/localize_and_translate.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
-
+import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
+import 'dart:convert';
+import '../../../constants/domain.dart';
+import '../../../constants/get_storage.dart';
 import '../../../constants/my_colors.dart';
+import '../../../controllers/general/statusprovider.dart';
 import '../appbar_title.dart';
 import '../button_styles.dart';
+import '../common/status_tracker_widget.dart';
 import '../sized_box.dart';
 import '../title_section.dart';
 
 class RequestDetailsScreen extends StatefulWidget {
   Service requestedService;
+  int? index;
+  final Function(Service)? onServiceUpdated;
 
-  RequestDetailsScreen({super.key, required this.requestedService});
+  RequestDetailsScreen({
+    super.key,
+    required this.requestedService,
+    this.index,
+    this.onServiceUpdated,
+  });
 
   @override
   State<RequestDetailsScreen> createState() => _RequestDetailsScreenState();
@@ -32,7 +46,62 @@ class RequestDetailsScreen extends StatefulWidget {
 class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   bool _isFetched = false;
   bool _isCancelling = false;
+  String? _updatedServiceStatus;
   ResponseHandler<ServiceDetails>? serviceDetailsResponse;
+  ResponseHandler<ServiceResponse>? customerServicesResponse;
+
+  @override
+  void initState() {
+    super.initState();
+    connectPusher();
+    // _fetchData();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  Future<void> connectPusher() async {
+    pusher = PusherChannelsFlutter.getInstance();
+
+    try {
+      await pusher.init(
+        apiKey: '0727f1f58b92a8e76b84', // مفتاحك هنا
+        cluster: 'eu', // كلسترك هنا
+        onEvent: (event) {
+          print('📢 Event received: ${event.eventName}');
+          print('📃 Event data: ${event.data}');
+        },
+      );
+      await pusher.subscribe(
+          channelName: 'service-status',
+          onEvent: (event) {
+            print("test");
+            _fetchData();
+          });
+
+      await pusher.connect();
+      print('✅ Pusher connected.');
+    } catch (e) {
+      print('❌ Error connecting to Pusher: $e');
+    }
+  }
+
+  Future<void> _fetchData() async {
+    final fetchedData =
+        await Provider.of<CustomerOrdersProvider>(context, listen: false)
+            .fetchCustomerServices();
+    if (!mounted) return;
+    setState(() {
+      customerServicesResponse = fetchedData;
+      // Find the matching service in current services array
+      final currentService = customerServicesResponse!.response!.currentServices
+          .firstWhere((service) => service.id == widget.requestedService.id);
+      _updatedServiceStatus = currentService.service_status;
+      _isFetched = true;
+    });
+  }
 
   @override
   void didChangeDependencies() {
@@ -51,6 +120,7 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print(widget.requestedService.service_status);
     return Scaffold(
       appBar: AppbarTitle(title: 'طلب رقم #${widget.requestedService.id}'),
       backgroundColor: Colors.white,
@@ -210,43 +280,6 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
                                           ),
                                         ],
                                       ),
-                                      SizedBoxedH8,
-                                      Row(
-                                        children: [
-                                          const SizedBox(width: 6),
-                                          Expanded(
-                                            child: Text(
-                                              'حالة الطلب: ${widget.requestedService.service_status == "NEW_OFFER"
-                                                  ? "تم قبول العرض , سيتم التنفيذ في الوقت المحدد"
-                                                  : widget.requestedService.service_status == "onWay"
-                                                  ? "الفني في الطريق"
-                                                  : widget.requestedService.service_status == "Work_Now"
-                                                  ? "يتم تنفيذ العمل الأن"
-                                                  : widget.requestedService.service_status == "done_Work"
-                                                  ? "إكتمل العمل , تم الدفع"
-                                                  : "غير محدد"}',
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                color: MyColors.textColor,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      // Row(
-                                      //   children: [
-                                      //     SvgPicture.asset('assets/svg/request_calender.svg'),
-                                      //     const SizedBox(width: 6),
-                                      //     const Text(
-                                      //       'حتي 10/8/2024',
-                                      //       style: TextStyle(
-                                      //         fontSize: 12,
-                                      //         color: MyColors.textColor,
-                                      //       ),
-                                      //     ),
-                                      //   ],
-                                      // ),
                                     ],
                                   ),
                                 ),
@@ -257,6 +290,13 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
                       ),
                     ),
                     SizedBoxedH16,
+                    TitleSections(
+                        title: 'حالة الطلب',
+                        isViewAll: false,
+                        onTapView: () {}),
+                    StatusTrackerWidget(
+                        currentStatus: _updatedServiceStatus ??
+                            widget.requestedService.service_status),
                     Divider(color: Colors.grey.withOpacity(0.1), thickness: 10),
                     SizedBoxedH16,
                     TitleSections(
@@ -364,96 +404,6 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
                             ),
                     ),
                     SizedBoxedH16,
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    //   child: Row(
-                    //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    //     children: [
-                    //       Expanded(
-                    //         child: SizedBox(
-                    //           height: 56,
-                    //           child: TextButton(
-                    //             style: widget.requestedService.status == 'CANCELED' ? flatButtonDisabledStyle : flatButtonPrimaryStyle,
-                    //             onPressed: widget.requestedService.status == 'CANCELED'
-                    //                 ? null
-                    //                 : () {
-                    //                     Navigator.of(context).push(MaterialPageRoute(builder: (context) => ServiceRequestScreen()));
-                    //                   },
-                    //             child: Row(
-                    //               mainAxisAlignment: MainAxisAlignment.center,
-                    //               crossAxisAlignment: CrossAxisAlignment.center,
-                    //               children: [
-                    //                 Text(
-                    //                   'تعديل'.tr(),
-                    //                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
-                    //                 ),
-                    //               ],
-                    //             ),
-                    //           ),
-                    //         ),
-                    //       ),
-                    //       const SizedBox(width: 12),
-                    //       Expanded(
-                    //         child: SizedBox(
-                    //           height: 56,
-                    //           child: _isCancelling
-                    //               ? Center(
-                    //                   child: CircularProgressIndicator(),
-                    //                 )
-                    //               : TextButton(
-                    //                   style: widget.requestedService.status == 'CANCELED' ? flatButtonPrimaryStyle : flatButtonLightStyle,
-                    //                   onPressed: _isCancelling
-                    //                       ? null
-                    //                       : () async {
-                    //                           setState(() {
-                    //                             _isCancelling = true;
-                    //                           });
-                    //                           ResponseHandler handledResponse = ResponseHandler(status: ResponseStatus.error);
-                    //                           if (widget.requestedService.status == 'CANCELED') {
-                    //                             handledResponse = await Provider.of<CustomerOrdersProvider>(context, listen: false).deleteServiceRequest(widget.requestedService.id!);
-                    //                           } else {
-                    //                             handledResponse = await Provider.of<CustomerOrdersProvider>(context, listen: false).cancelAServiceRequest(widget.requestedService.id!, 'REASONNNNNNNNNNNNNNNN');
-                    //                           }
-                    //                           setState(() {
-                    //                             _isCancelling = false;
-                    //                           });
-                    //                           if (handledResponse.status == ResponseStatus.success) {
-                    //                             ScaffoldMessenger.of(context).showSnackBar(
-                    //                               SnackBar(
-                    //                                 content: Text('تم إلغاء الطلب بنجاح'.tr()),
-                    //                               ),
-                    //                             );
-                    //                           } else if (handledResponse.errorMessage != null) {
-                    //                             ScaffoldMessenger.of(context).showSnackBar(
-                    //                               SnackBar(
-                    //                                 content: Text(handledResponse.errorMessage!),
-                    //                               ),
-                    //                             );
-                    //                           } else {
-                    //                             ScaffoldMessenger.of(context).showSnackBar(
-                    //                               SnackBar(
-                    //                                 content: Text('حدث خطأ ما'.tr()),
-                    //                               ),
-                    //                             );
-                    //                           }
-                    //                         },
-                    //                   child: Row(
-                    //                     mainAxisAlignment: MainAxisAlignment.center,
-                    //                     crossAxisAlignment: CrossAxisAlignment.center,
-                    //                     children: [
-                    //                       Text(
-                    //                         widget.requestedService.status == 'CANCELED' ? 'حذف'.tr() : 'إلغاء'.tr(),
-                    //                         style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: widget.requestedService.status == 'CANCELED' ? Colors.white : Colors.black),
-                    //                       ),
-                    //                     ],
-                    //                   ),
-                    //                 ),
-                    //         ),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
-                    // SizedBoxedH16,
                   ],
                 ),
     );
@@ -586,7 +536,7 @@ class _ServiceOfferCardState extends State<ServiceOfferCard> {
                                       child: widget.isAccepted
                                           ? TextButton(
                                               style: flatButtonPrimaryStyle,
-                                              onPressed: () {
+                                              onPressed: () async {
                                                 Navigator.of(context).push(
                                                     MaterialPageRoute(
                                                         builder: (context) =>
@@ -622,6 +572,11 @@ class _ServiceOfferCardState extends State<ServiceOfferCard> {
                                           : TextButton(
                                               style: flatButtonPrimaryStyle,
                                               onPressed: () async {
+                                                await StatusProviderController
+                                                    .changeStatus(
+                                                        widget.service.id
+                                                            .toString(),
+                                                        "NEW_OFFER");
                                                 setState(() {
                                                   _isAccepting = true;
                                                 });
@@ -643,7 +598,7 @@ class _ServiceOfferCardState extends State<ServiceOfferCard> {
                                                               .tr()),
                                                     ),
                                                   );
-                                                  Navigator.of(context).pop();
+
                                                   widget.onRefresh();
                                                 } else if (handledResponse
                                                         .errorMessage !=

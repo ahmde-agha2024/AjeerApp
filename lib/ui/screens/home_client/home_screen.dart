@@ -93,9 +93,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: SingleChildScrollView(
                                   child: Column(
                                     children: [
-                                      CarouselSliderHome(
-                                          slides:
-                                              _customerHome!.response!.sliders),
+                                      // Filter sliders by type
+                                      if (_customerHome!.response!.sliders !=
+                                          null) ...[
+                                        // Show sliders with type "main"
+                                        if (_customerHome!.response!.sliders!
+                                            .any((slider) =>
+                                                slider.type == "customer"))
+                                          CarouselSliderHome(
+                                            slides: _customerHome!
+                                                .response!.sliders
+                                                .where((slider) =>
+                                                    slider.type == "customer")
+                                                .toList(),
+                                            catergoryTitle: _customerHome!
+                                                .response!.categories,
+                                          ),
+                                      ],
                                       SizedBoxedH16,
                                       TitleSections(
                                         title: 'Categories',

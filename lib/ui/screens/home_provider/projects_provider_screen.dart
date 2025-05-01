@@ -17,6 +17,7 @@ import 'package:provider/provider.dart';
 
 import '../../../constants/my_colors.dart';
 import '../../widgets/sized_box.dart';
+import 'packages_screen.dart';
 
 class ProjectsProviderScreen extends StatefulWidget {
   const ProjectsProviderScreen({super.key});
@@ -70,7 +71,7 @@ class _ProjectsProviderScreenState extends State<ProjectsProviderScreen> {
       body: RefreshIndicator(
         onRefresh: _fetchNewServices, // السحب لتحديث البيانات
         child: !_isFetched
-            ? loaderWidget(context,type: "card")
+            ? loaderWidget(context, type: "card")
             : handledResponse.status == ResponseStatus.error
                 ? Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -103,36 +104,38 @@ class _ProjectsProviderScreenState extends State<ProjectsProviderScreen> {
                     ],
                   )
                 : Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBoxedH16,
-                      handledResponse.response!.length!=0? Expanded(
-                        child: ListView.builder(
-                            itemCount: handledResponse.response!.length,
-                            itemBuilder: (ctx, index) {
-                              return ProviderServiceRequestCard(
-                                service: handledResponse.response![index],
-                              );
-                            }),
-                      ):  Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.asset(
-                                'assets/Icons/removedocumentIcon.png',
-                                height: 110,
-                                width: 110),
-                            const SizedBox(height: 16),
-                            Text(
-                              'لا يوجد مشاريع ,ستكون المشاريع هنا',
-                              style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: MyColors.Darkest),
+                      handledResponse.response!.length != 0
+                          ? Expanded(
+                              child: ListView.builder(
+                                  itemCount: handledResponse.response!.length,
+                                  itemBuilder: (ctx, index) {
+                                    return ProviderServiceRequestCard(
+                                      service: handledResponse.response![index],
+                                    );
+                                  }),
+                            )
+                          : Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                      'assets/Icons/removedocumentIcon.png',
+                                      height: 110,
+                                      width: 110),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'لا يوجد مشاريع ,ستكون المشاريع هنا',
+                                    style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: MyColors.Darkest),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ],
-                        ),
-                      ),
                     ],
                   ),
       ),
@@ -153,6 +156,8 @@ class ProviderServiceRequestCard extends StatefulWidget {
 class _ProviderServiceRequestCardState
     extends State<ProviderServiceRequestCard> {
   final int verified = storage.read('verified_provider');
+  final int offerCount = storage.read('offer_count') ?? 0;
+  final int providerId = storage.read('provider_id') ?? 0;
 
   @override
   Widget build(BuildContext context) {
@@ -174,7 +179,6 @@ class _ProviderServiceRequestCardState
                   ),
                   child: CachedNetworkImage(
                     imageUrl: widget.service.image!,
-
                     height: 120,
                     width: 100,
                     fit: BoxFit.cover,
@@ -242,16 +246,89 @@ class _ProviderServiceRequestCardState
                               width: double.infinity,
                               child: TextButton(
                                 style: flatButtonPrimaryStyle,
-                                onPressed:verified==1? () async {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          RequestOfferProviderScreen(
-                                        serviceDetails: widget.service,
-                                      ),
-                                    ),
-                                  );
-                                }:null,
+                                onPressed: verified == 1
+                                    ? () async {
+
+                                        if (offerCount == 1) {
+                                          // Show confirmation dialog
+                                          final result =
+                                              await showDialog<String>(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return Directionality(
+                                                textDirection: TextDirection.rtl,
+                                                child: AlertDialog(
+                                                  title: Text(
+                                                      ' تنبيه  مشروع - ${widget.service.title}'),
+                                                  content: Text(
+                                                      'تملك حالياً عرض واحد فقط. هل ترغب بالانسحاب من باقي التقديمات أم شراء عروض إضافية؟'),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop('withdraw');
+                                                      },
+                                                      child: Text(
+                                                          'انسحاب من باقي المشاريع'),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop('purchase');
+                                                      },
+                                                      child: Text(
+                                                          'شراء عروض إضافية'),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                          );
+
+                                          if (result == 'withdraw') {
+
+                                            // Delete pending offers
+                                            final response = await Provider.of<ProviderServicesProvider>(context, listen: false)
+                                                .deletePendingOffers(providerId);
+
+                                            if (response.status == ResponseStatus.success) {
+                                              Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      RequestOfferProviderScreen(
+                                                    serviceDetails:
+                                                        widget.service,
+                                                  ),
+                                                ),
+                                              );
+                                            } else {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(response.errorMessage ?? 'حدث خطأ أثناء حذف العروض المعلقة'),
+                                                ),
+                                              );
+                                            }
+                                          } else if (result == 'purchase') {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    PackagesScreen(),
+                                              ),
+                                            );
+                                          }
+                                        }else{
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  RequestOfferProviderScreen(
+                                                    serviceDetails:
+                                                    widget.service,
+                                                  ),
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    : null,
                                 child: Text(
                                   'تقديم'.tr(),
                                   style: const TextStyle(

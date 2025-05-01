@@ -348,7 +348,7 @@ class _ServiceWorkingOnCardState extends State<ServiceWorkingOnCard> {
     } else if (widget.service.status == 'OFFER_CANCELED_BY_CUSTOMER') {
       statusStringShowingToUser = 'تم الغاء الطلب من قبل العميل';
     } else if (widget.service.status == 'OFFER_CANCELED_BY_PROVIDER') {
-      statusStringShowingToUser = 'تم الغاء الطلب من ق��ل العامل';
+      statusStringShowingToUser = 'تم الغاء الطلب من قبل العامل';
     } else if (widget.service.status == 'OFFER_CANCELED_BY_ADMIN') {
       statusStringShowingToUser = 'تم الغاء الطلب من قبل الادارة';
     } else {
@@ -428,13 +428,23 @@ class _ServiceWorkingOnCardState extends State<ServiceWorkingOnCard> {
                     child: TextButton(
                       style: flatButtonPrimaryStyle,
                       onPressed: () async {
-                        Navigator.of(context).push(
+                        final updatedService = await Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => RequestDetailsProviderScreen(
                               loadedService: widget.service,
+                              onServiceUpdated: (updatedService) {
+                                setState(() {
+                                  widget.service = updatedService;
+                                });
+                              },
                             ),
                           ),
                         );
+                        if (updatedService != null) {
+                          setState(() {
+                            widget.service = updatedService;
+                          });
+                        }
                       },
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,

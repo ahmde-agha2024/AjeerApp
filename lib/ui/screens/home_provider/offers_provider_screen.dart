@@ -1,4 +1,5 @@
 import 'package:ajeer/constants/utils.dart';
+import 'package:ajeer/controllers/general/statusprovider.dart';
 import 'package:ajeer/controllers/service_provider/provider_offers_provider.dart';
 import 'package:ajeer/models/common/chat_model.dart';
 import 'package:ajeer/models/common/service_details_model.dart';
@@ -13,6 +14,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:localize_and_translate/localize_and_translate.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
 
 import '../../../constants/my_colors.dart';
 import '../../widgets/button_styles.dart';
@@ -37,8 +39,37 @@ class _OffersProviderScreenState extends State<OffersProviderScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-  }
+    connectPusher();
 
+  }
+  Future<void> connectPusher() async {
+    pusher = PusherChannelsFlutter.getInstance();
+
+    try {
+      await pusher.init(
+        apiKey: '0727f1f58b92a8e76b84', // مفتاحك هنا
+        cluster: 'eu', // كلسترك هنا
+        onEvent: (event) {
+          print('📢 Event received: ${event.eventName}');
+          print('📃 Event data: ${event.data}');
+        },
+      );
+
+      await pusher.subscribe(
+          channelName: 'service-status',
+          onEvent: (event) {
+            setState(() {
+              _fetchOffers();
+
+            });
+          });
+
+      await pusher.connect();
+      print('✅ Pusher connected.');
+    } catch (e) {
+      print('❌ Error connecting to Pusher: $e');
+    }
+  }
   @override
   void didChangeDependencies() {
     if (!_isFetched) {

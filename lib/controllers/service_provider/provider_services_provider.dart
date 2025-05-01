@@ -12,7 +12,8 @@ class ProviderServicesProvider with ChangeNotifier {
   ProviderServicesProvider(this._accessToken);
 
   Future<ResponseHandler<List<Service>>> getAllNewServices() async {
-    ResponseHandler<List<Service>> handledResponse = ResponseHandler(status: ResponseStatus.error);
+    ResponseHandler<List<Service>> handledResponse =
+        ResponseHandler(status: ResponseStatus.error);
 
     String url = '${BaseURL.baseServiceProviderUrl}/newservices';
     try {
@@ -28,10 +29,12 @@ class ProviderServicesProvider with ChangeNotifier {
       if (!await checkResponseHttp(response)) {
         return handledResponse;
       }
-
+      print('response.body');
+      print(response.body);
       if (response.statusCode == 200) {
         handledResponse.status = ResponseStatus.success;
-        handledResponse.response = servicesListFromJson(jsonDecode(response.body)['data']);
+        handledResponse.response =
+            servicesListFromJson(jsonDecode(response.body)['data']);
       } else if (jsonDecode(response.body)['message'] != null) {
         handledResponse.status = ResponseStatus.error;
         handledResponse.errorMessage = jsonDecode(response.body)['message'];
@@ -39,16 +42,24 @@ class ProviderServicesProvider with ChangeNotifier {
         handledResponse.status = ResponseStatus.error;
       }
 
-      logMessage(location: 'getAllNewServices STATUS CODE', message: response.statusCode);
-      logMessage(location: 'getAllNewServices RESPONSE', message: response.body.toString());
+      logMessage(
+          location: 'getAllNewServices STATUS CODE',
+          message: response.statusCode);
+      logMessage(
+          location: 'getAllNewServices RESPONSE',
+          message: response.body.toString());
     } catch (e, s) {
-      logMessage(location: 'ERROR ON getAllNewServices', message: e.toString(), stack: s.toString());
+      logMessage(
+          location: 'ERROR ON getAllNewServices',
+          message: e.toString(),
+          stack: s.toString());
     }
     return handledResponse;
   }
 
   Future<ResponseHandler<ProviderServices>> getMyServices() async {
-    ResponseHandler<ProviderServices> handledResponse = ResponseHandler(status: ResponseStatus.error);
+    ResponseHandler<ProviderServices> handledResponse =
+        ResponseHandler(status: ResponseStatus.error);
 
     String url = '${BaseURL.baseServiceProviderUrl}/service';
     try {
@@ -75,16 +86,24 @@ class ProviderServicesProvider with ChangeNotifier {
         handledResponse.status = ResponseStatus.error;
       }
 
-      logMessage(location: 'getMyServices STATUS CODE', message: response.statusCode);
-      logMessage(location: 'getMyServices RESPONSE', message: response.body.toString());
+      logMessage(
+          location: 'getMyServices STATUS CODE', message: response.statusCode);
+      logMessage(
+          location: 'getMyServices RESPONSE',
+          message: response.body.toString());
     } catch (e, s) {
-      logMessage(location: 'ERROR ON getMyServices', message: e.toString(), stack: s.toString());
+      logMessage(
+          location: 'ERROR ON getMyServices',
+          message: e.toString(),
+          stack: s.toString());
     }
     return handledResponse;
   }
 
-  Future<ResponseHandler> cancelAService(int serviceId, String cancellationReason) async {
-    ResponseHandler handledResponse = ResponseHandler(status: ResponseStatus.error);
+  Future<ResponseHandler> cancelAService(
+      int serviceId, String cancellationReason) async {
+    ResponseHandler handledResponse =
+        ResponseHandler(status: ResponseStatus.error);
 
     String url = '${BaseURL.baseServiceProviderUrl}/servicecancel';
     try {
@@ -109,16 +128,23 @@ class ProviderServicesProvider with ChangeNotifier {
         handledResponse.errorMessage = jsonDecode(response.body)['message'];
       }
 
-      logMessage(location: 'cancelAService STATUS CODE', message: response.statusCode);
-      logMessage(location: 'cancelAService RESPONSE', message: response.body.toString());
+      logMessage(
+          location: 'cancelAService STATUS CODE', message: response.statusCode);
+      logMessage(
+          location: 'cancelAService RESPONSE',
+          message: response.body.toString());
     } catch (e, s) {
-      logMessage(location: 'ERROR ON cancelAService', message: e.toString(), stack: s.toString());
+      logMessage(
+          location: 'ERROR ON cancelAService',
+          message: e.toString(),
+          stack: s.toString());
     }
     return handledResponse;
   }
 
-   Future<ResponseHandler> changeStatus(String serviceId, String status) async {
-    ResponseHandler handledResponse = ResponseHandler(status: ResponseStatus.success);
+  Future<ResponseHandler> changeStatus(String serviceId, String status) async {
+    ResponseHandler handledResponse =
+        ResponseHandler(status: ResponseStatus.success);
 
     String url = '${BaseURL.baseServiceProviderUrl}/change-status';
     try {
@@ -143,10 +169,52 @@ class ProviderServicesProvider with ChangeNotifier {
         handledResponse.errorMessage = jsonDecode(response.body)['message'];
       }
 
-   //   logMessage(location: 'cancelAService STATUS CODE', message: response.statusCode);
-     // logMessage(location: 'cancelAService RESPONSE', message: response.body.toString());
+      //   logMessage(location: 'cancelAService STATUS CODE', message: response.statusCode);
+      // logMessage(location: 'cancelAService RESPONSE', message: response.body.toString());
     } catch (e, s) {
-      logMessage(location: 'ERROR ON cancelAService', message: e.toString(), stack: s.toString());
+      logMessage(
+          location: 'ERROR ON cancelAService',
+          message: e.toString(),
+          stack: s.toString());
+    }
+    return handledResponse;
+  }
+
+  Future<ResponseHandler> deletePendingOffers(int providerId) async {
+    ResponseHandler handledResponse =
+        ResponseHandler(status: ResponseStatus.success);
+
+    String url = '${BaseURL.baseServiceProviderUrl}/deletepending/$providerId';
+    try {
+      http.Response response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'authorization': 'Bearer $_accessToken',
+        },
+      );
+
+      if (!await checkResponseHttp(response)) {
+        return handledResponse;
+      }
+
+      print(response.statusCode);
+
+      if (response.statusCode == 200) {
+        handledResponse.status = ResponseStatus.success;
+      } else {
+        handledResponse.status = ResponseStatus.error;
+        //  handledResponse.errorMessage = jsonDecode(response.body)['message'];
+      }
+
+      //   logMessage(location: 'cancelAService STATUS CODE', message: response.statusCode);
+      // logMessage(location: 'cancelAService RESPONSE', message: response.body.toString());
+    } catch (e, s) {
+      logMessage(
+          location: 'ERROR ON cancelAService',
+          message: e.toString(),
+          stack: s.toString());
     }
     return handledResponse;
   }

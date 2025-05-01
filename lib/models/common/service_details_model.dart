@@ -106,6 +106,7 @@ class Offer {
   DateTime? createdAt;
   DateTime? updatedAt;
 
+
   Offer({
     this.id,
     this.serviceId,
@@ -128,6 +129,7 @@ class Offer {
     this.reason,
     this.createdAt,
     this.updatedAt,
+
   });
 
   factory Offer.fromJson(Map<String, dynamic> json) => Offer(

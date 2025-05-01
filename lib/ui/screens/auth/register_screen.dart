@@ -5,6 +5,8 @@ import 'package:ajeer/controllers/common/auth_provider.dart';
 import 'package:ajeer/controllers/general/on_boarding_provider.dart';
 import 'package:ajeer/models/common/category_model.dart';
 import 'package:ajeer/models/customer/provider/service_provider_account.dart';
+import 'package:ajeer/ui/screens/auth/login_screen.dart';
+import 'package:ajeer/ui/screens/auth/verify_code_password_screen.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -12,6 +14,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:localize_and_translate/localize_and_translate.dart';
 import 'package:provider/provider.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 import '../../../constants/get_storage.dart';
 import '../../../constants/my_colors.dart';
@@ -20,7 +25,11 @@ import '../../widgets/button_styles.dart';
 import '../../widgets/input_decoration.dart';
 import '../../widgets/input_label.dart';
 import '../faq_screen.dart';
+import '../home_client/tabs_screen.dart';
+import '../home_provider/tabs_provider_screen.dart';
 import '../terms_and_conditions_screen.dart';
+import 'auth_screen.dart';
+
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -32,7 +41,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   Map<int, List<Category>> selectedCategoriesSubcategories =
-      {}; // Maps selected category id to selected subcategory ids
+  {}; // Maps selected category id to selected subcategory ids
 
   var phoneController = TextEditingController();
   final _nameController = TextEditingController();
@@ -57,6 +66,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isConfirmPasswordVisible = false;
 
   int _currentStep = 0;
+  bool _showOTPFields = false;
+  bool _showAllFields = false;
 
   @override
   void didChangeDependencies() {
@@ -109,97 +120,125 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: Column(
         children: [
           stepOneContent(),
-          SizedBox(
-            width: double.infinity,
-            height: 60,
-            child: TextButton(
-              style: flatButtonStyle,
-              onPressed: _isLoading
-                  ? null
-                  : () async {
-                      await storage.write('seen_onboarding', 'true');
-                      if (_formKey.currentState!.validate()) {
-                        if (_passwordController.text !=
-                            _confirmPasswordController.text) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            backgroundColor: Color(0xffBF3131),
-                            content: Text("passwords_do_not_match".tr(),style: TextStyle(
-                                color: Color(0xffEEEEEE)
-                            ),),
-                          ));
-                          return;
-                        }
-                        if (!_isAgree) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                backgroundColor: Color(0xffBF3131),
-                                content: Text(
-                                    "You must agree to the terms and conditions"
-                                        .tr(),style: TextStyle(
-                                    color: Color(0xffEEEEEE)
-                                ),)),
-                          );
-                          return;
-                        }
-                        setState(() {
-                          _isLoading = true;
-                        });
-                        //Client
-                        ResponseHandler handledResponse =
-                            await authProvider.signUpAsCustomer(
-                                fullName: _nameController.text,
-                                phoneNumber: phoneController.text,
-                                password: _passwordController.text,
-                                passwordConfirmation:
-                                    _confirmPasswordController.text,
-                                invite_link: _inviite_link.text);
-                        if (handledResponse.status == ResponseStatus.success) {
-                          showAccountCreatedBottomSheet(
-                              context, phoneController.text.toString());
-                        } else if (handledResponse.errorMessage != null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                backgroundColor: Color(0xffBF3131),
-                                content:
-                                    Text(handledResponse.errorMessage!.tr(),
-                                    style: TextStyle(
-                                        color: Color(0xffEEEEEE)
-                                    ),)),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                backgroundColor: Color(0xffBF3131),
-                                content: Text('حاول مرة أخرى'
-                                    .tr(),style: TextStyle(
-                                    color: Color(0xffEEEEEE)
-                                ),)), // TODO:: Translate this
-                          );
-                        }
-                        setState(() {
-                          _isLoading = false;
-                        });
-                      }
-                    },
-              child: _isLoading
-                  ? const Center(
-                      child: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
+
+            SizedBox(
+              width: double.infinity,
+              height: 60,
+              child: TextButton(
+                style: flatButtonStyle,
+                onPressed: _isLoading
+                    ? null
+                    : () async {
+                  await storage.write('seen_onboarding', 'true');
+                  if (_formKey.currentState!.validate()) {
+                    if (!_showAllFields) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: Color(0xffBF3131),
+                          content: Text(
+                            'الرجاء التحقق من رقم الهاتف أولاً',
+                            style: TextStyle(color: Color(0xffEEEEEE)),
+                          ),
                         ),
-                      ),
-                    )
-                  : Text(
-                      'Create an account'.tr(),
-                      style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white),
+                      );
+                      return;
+                    }
+                    if (_passwordController.text !=
+                        _confirmPasswordController.text) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        backgroundColor: Color(0xffBF3131),
+                        content: Text(
+                          "passwords_do_not_match".tr(), style: TextStyle(
+                            color: Color(0xffEEEEEE)
+                        ),),
+                      ));
+                      return;
+                    }
+                    if (!_isAgree) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            backgroundColor: Color(0xffBF3131),
+                            content: Text(
+                              "You must agree to the terms and conditions"
+                                  .tr(), style: TextStyle(
+                                color: Color(0xffEEEEEE)
+                            ),)),
+                      );
+                      return;
+                    }
+                    setState(() {
+                      _isLoading = true;
+                    });
+                    //Client
+                    ResponseHandler handledResponse =
+                    await authProvider.signUpAsCustomer(
+                        fullName: _nameController.text,
+                        phoneNumber: phoneController.text,
+                        password: _passwordController.text,
+                        passwordConfirmation:
+                        _confirmPasswordController.text,
+                        invite_link: _inviite_link.text);
+                    if (handledResponse.status == ResponseStatus.success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text("تم إنشاء الحساب بنجاح"
+                                .tr(), style: TextStyle(
+                                color: Color(0xffEEEEEE)
+                            ),)), // TODO:: Translate this
+                      );
+                      Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                              builder: (context) =>
+                              context.read<Auth>().isProvider
+                                   ? AuthScreen()
+                                  : AuthScreen()),
+                              (route) => false);
+                      //     context, phoneController.text.toString());
+                    } else if (handledResponse.errorMessage != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            backgroundColor: Color(0xffBF3131),
+                            content:
+                            Text(handledResponse.errorMessage!.tr(),
+                              style: TextStyle(
+                                  color: Color(0xffEEEEEE)
+                              ),)),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            backgroundColor: Color(0xffBF3131),
+                            content: Text('حاول مرة أخرى'
+                                .tr(), style: TextStyle(
+                                color: Color(0xffEEEEEE)
+                            ),)), // TODO:: Translate this
+                      );
+                    }
+                    setState(() {
+                      _isLoading = false;
+                    });
+                  }
+                },
+                child: _isLoading
+                    ? const Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
                     ),
+                  ),
+                )
+                    : Text(
+                  'Create an account'.tr(),
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white),
+                ),
+              ),
             ),
-          ),
+
         ],
       ),
     );
@@ -216,7 +255,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
+              Expanded( 
                 child: SizedBox(
                   height: 60,
                   width: double.infinity,
@@ -225,131 +264,158 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     onPressed: _isLoading
                         ? null
                         : () async {
-                            if (_formKey.currentState!.validate()) {
-                              if (_currentStep == 0) {
-                                if (_passwordController.text !=
-                                    _confirmPasswordController.text) {
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(SnackBar(
-                                    backgroundColor: Color(0xffBF3131),
-                                    content:
-                                        Text("passwords_do_not_match".tr(),style: TextStyle(
-                                            color: Color(0xffEEEEEE)
-                                        ),),
-                                  ));
-                                  return;
-                                } else {
-                                  setState(() => _currentStep += 1);
-                                }
-                              } else {
-                                if (imageDocuments['idFront'] == null ||
-                                    imageDocuments['idSelfie'] == null) {
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(SnackBar(
-                                    content: Text(
-                                        "الرجاء تعبئة الصور المطلوبة",style: TextStyle(
+                      if (_formKey.currentState!.validate()) {
+                        if (_currentStep == 0) {
+                          if (!_showAllFields) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: Color(0xffBF3131),
+                                content: Text(
+                                  'الرجاء التحقق من رقم الهاتف أولاً',
+                                  style: TextStyle(color: Color(0xffEEEEEE)),
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+                          if (_passwordController.text !=
+                              _confirmPasswordController.text) {
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(SnackBar(
+                              backgroundColor: Color(0xffBF3131),
+                              content:
+                              Text(
+                                "passwords_do_not_match".tr(), style: TextStyle(
+                                  color: Color(0xffEEEEEE)
+                              ),),
+                            ));
+                            return;
+                          } else {
+                            setState(() => _currentStep += 1);
+                          }
+                        } else {
+                          if (imageDocuments['idFront'] == null ||
+                              imageDocuments['idSelfie'] == null) {
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(SnackBar(
+                              content: Text(
+                                "الرجاء تعبئة الصور المطلوبة", style: TextStyle(
+                                  color: Color(0xffEEEEEE)
+                              ),),
+                              backgroundColor: Color(0xffBF3131),
+
+                            ));
+                            return;
+                          }
+                          if (!_isAgree) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+
+                                content: Text(
+                                  "You must agree to the terms and conditions"
+                                      .tr(), style: TextStyle(
+                                    color: Color(0xffEEEEEE)
+                                ),)
+
+                                , backgroundColor: Color(0xffBF3131),),
+
+                            );
+                            return;
+                          }
+                          if (selectedCategoryId == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  backgroundColor: Color(0xffBF3131),
+                                  content: Text(
+                                    "الرجاء إختيار التخصص", style: TextStyle(
                                       color: Color(0xffEEEEEE)
-                                    ),),
-                                    backgroundColor: Color(0xffBF3131),
+                                  ),)),
+                            );
+                            return;
+                          }
+                          await storage.write('seen_onboarding', 'true');
+                          setState(() {
+                            _isLoading = true;
+                          });
+                          ResponseHandler response =
+                          await authProvider.signUpAsProvider(
+                              fullName: _nameController.text,
+                              phoneNumber: phoneController.text,
+                              password: _passwordController.text,
+                              passwordConfirmation:
+                              _confirmPasswordController.text,
+                              about: _bioController.text,
+                              categoryId: selectedCategoryId!,
+                              cityId: selectedCityId!,
+                              passport: _passportController.text,
+                              //subCategoryIds: getSelectedSubCategoryIds(),
+                              idFront: imageDocuments['idFront']!,
+                              // idBack: imageDocuments['idBack']!,
+                              idSelfie: imageDocuments['idSelfie']!,
+                              invite_link: _inviite_link.text
+                            // image: imageDocuments['accountImage']!,
+                          );
+                          setState(() {
+                            _isLoading = false;
+                          });
+                          if (response.status == ResponseStatus.success) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
 
-                                  ));
-                                  return;
-                                }
-                                if (!_isAgree) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-
-                                        content: Text(
-                                            "You must agree to the terms and conditions"
-                                                .tr(),style: TextStyle(
-                                            color: Color(0xffEEEEEE)
-                                        ),)
-
-                                    ,backgroundColor: Color(0xffBF3131),),
-
-                                  );
-                                  return;
-                                }
-                                if (selectedCategoryId == null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        backgroundColor: Color(0xffBF3131),
-                                        content: Text(
-                                           "الرجاء إختيار التخصص",style: TextStyle(
-                                            color: Color(0xffEEEEEE)
-                                        ),)),
-                                  );
-                                  return;
-                                }
-                                await storage.write('seen_onboarding', 'true');
-                                setState(() {
-                                  _isLoading = true;
-                                });
-                                ResponseHandler response =
-                                    await authProvider.signUpAsProvider(
-                                        fullName: _nameController.text,
-                                        phoneNumber: phoneController.text,
-                                        password: _passwordController.text,
-                                        passwordConfirmation:
-                                            _confirmPasswordController.text,
-                                        about: _bioController.text,
-                                        categoryId: selectedCategoryId!,
-                                        cityId: selectedCityId!,
-                                        passport: _passportController.text,
-                                        //subCategoryIds: getSelectedSubCategoryIds(),
-                                        idFront: imageDocuments['idFront']!,
-                                        // idBack: imageDocuments['idBack']!,
-                                        idSelfie: imageDocuments['idSelfie']!,
-                                        invite_link: _inviite_link.text
-                                        // image: imageDocuments['accountImage']!,
-                                        );
-                                setState(() {
-                                  _isLoading = false;
-                                });
-                                if (response.status == ResponseStatus.success) {
-                                  showAccountCreatedBottomSheet(
-                                      context, phoneController.text.toString());
-                                } else if (response.errorMessage != null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        backgroundColor: Color(0xffBF3131),
-                                        content:
-                                            Text(response.errorMessage!.tr(),style: TextStyle(
-                                                color: Color(0xffEEEEEE)
-                                            ),)),
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        backgroundColor: Color(0xffBF3131),
-                                        content: Text(
-                                            "حاول مرة أخرى",style: TextStyle(
-                                            color: Color(0xffEEEEEE)
-                                        ),)), // TODO:: Translate this
-                                  );
-                                }
-                              }
-                            }
-                          },
+                                  content: Text("تم إنشاء الحساب بنجاح"
+                                      .tr(), style: TextStyle(
+                                      color: Color(0xffEEEEEE)
+                                  ),)), // TODO:: Translate this
+                            );
+                            Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                    context.read<Auth>().isProvider
+                                        ? AuthScreen()
+                                        : AuthScreen()),
+                                    (route) => false);
+                          } else if (response.errorMessage != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  backgroundColor: Color(0xffBF3131),
+                                  content:
+                                  Text(response.errorMessage!.tr(),
+                                    style: TextStyle(
+                                        color: Color(0xffEEEEEE)
+                                    ),)),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  backgroundColor: Color(0xffBF3131),
+                                  content: Text(
+                                    "حاول مرة أخرى", style: TextStyle(
+                                      color: Color(0xffEEEEEE)
+                                  ),)), // TODO:: Translate this
+                            );
+                          }
+                        }
+                      }
+                    },
                     child: _isLoading
                         ? const Center(
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                              ),
-                            ),
-                          )
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                        ),
+                      ),
+                    )
                         : Text(
-                            _currentStep == 2
-                                ? 'Create an account'.tr()
-                                : 'Continue'.tr(),
-                            style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white),
-                          ),
+                      _currentStep == 1
+                          ? 'Create an account'.tr()
+                          : 'Continue'.tr(),
+                      style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white),
+                    ),
                   ),
                 ),
               ),
@@ -409,88 +475,90 @@ class _RegisterScreenState extends State<RegisterScreen> {
         LabelText(text: 'Phone Number'.tr()),
         const SizedBox(height: 8),
         phoneNumber(),
-        const SizedBox(height: 16),
-        LabelText(text: 'Password'.tr()),
-        const SizedBox(height: 8),
-        buildPasswordField(),
-        const SizedBox(height: 16),
-        LabelText(text: 'Password Confirmation'.tr()),
-        const SizedBox(height: 8),
-        buildConfirmPasswordField(),
-        const SizedBox(height: 16),
-        LabelText(text: 'رابط الدعوة ( إختياري )'.tr()),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _inviite_link,
-          onTapOutside: (event) {
-            FocusManager.instance.primaryFocus?.unfocus();
-          },
-          decoration: InputDecoration(
-            fillColor: Colors.white,
-            filled: true,
-            enabledBorder: InputBorders.enabledBorder,
-            errorBorder: InputBorders.errorBorder,
-            focusedBorder: InputBorders.focusedBorder,
-            focusedErrorBorder: InputBorders.focusedErrorBorder,
-            hintText: 'رابط الدعوة'.tr(),
-            alignLabelWithHint: true,
-            hintStyle: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w300,
-                color: MyColors.LightDark),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Checkbox(
-              value: _isAgree,
-              onChanged: (bool? value) {
-                setState(() {
-                  _isAgree = value ?? false;
-                });
-              },
-              activeColor: MyColors.MainBulma,
+        if (_showAllFields) ...[
+          const SizedBox(height: 16),
+          LabelText(text: 'Password'.tr()),
+          const SizedBox(height: 8),
+          buildPasswordField(),
+          const SizedBox(height: 16),
+          LabelText(text: 'Password Confirmation'.tr()),
+          const SizedBox(height: 8),
+          buildConfirmPasswordField(),
+          const SizedBox(height: 16),
+          LabelText(text: 'رابط الدعوة ( إختياري )'.tr()),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _inviite_link,
+            onTapOutside: (event) {
+              FocusManager.instance.primaryFocus?.unfocus();
+            },
+            decoration: InputDecoration(
+              fillColor: Colors.white,
+              filled: true,
+              enabledBorder: InputBorders.enabledBorder,
+              errorBorder: InputBorders.errorBorder,
+              focusedBorder: InputBorders.focusedBorder,
+              focusedErrorBorder: InputBorders.focusedErrorBorder,
+              hintText: 'رابط الدعوة'.tr(),
+              alignLabelWithHint: true,
+              hintStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w300,
+                  color: MyColors.LightDark),
             ),
-            Flexible(
-              child: RichText(
-                text: TextSpan(
-                  text: 'By registering with us you agree to '.tr(),
-                  style: const TextStyle(color: MyColors.Darkest),
-                  children: [
-                    TextSpan(
-                      text: 'Terms and Conditions'.tr(),
-                      style: const TextStyle(
-                          color: MyColors.MainBulma,
-                          decoration: TextDecoration.underline),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) =>
-                                  const TermsAndConditionsScreen()));
-                        },
-                    ),
-                    TextSpan(
-                        text: ' and '.tr(),
-                        style: const TextStyle(color: MyColors.Darkest)),
-                    TextSpan(
-                      text: 'privacy policy'.tr(),
-                      style: const TextStyle(
-                          color: MyColors.MainBulma,
-                          decoration: TextDecoration.underline),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => FaqScreen()));
-                        },
-                    ),
-                  ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Checkbox(
+                value: _isAgree,
+                onChanged: (bool? value) {
+                  setState(() {
+                    _isAgree = value ?? false;
+                  });
+                },
+                activeColor: MyColors.MainBulma,
+              ),
+              Flexible(
+                child: RichText(
+                  text: TextSpan(
+                    text: 'By registering with us you agree to '.tr(),
+                    style: const TextStyle(color: MyColors.Darkest),
+                    children: [
+                      TextSpan(
+                        text: 'Terms and Conditions'.tr(),
+                        style: const TextStyle(
+                            color: MyColors.MainBulma,
+                            decoration: TextDecoration.underline),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) =>
+                                const TermsAndConditionsScreen()));
+                          },
+                      ),
+                      TextSpan(
+                          text: ' and '.tr(),
+                          style: const TextStyle(color: MyColors.Darkest)),
+                      TextSpan(
+                        text: 'privacy policy'.tr(),
+                        style: const TextStyle(
+                            color: MyColors.MainBulma,
+                            decoration: TextDecoration.underline),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => FaqScreen()));
+                          },
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -505,10 +573,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
           const SizedBox(height: 8),
           TextFormField(
             controller: _bioController,
-            decoration: buildInputDecoration(hintText: 'Brief summary'.tr()).copyWith(
-              counterText: '${_bioController.text.length}/80',
+            decoration: buildInputDecoration(
+              hintText: 'مثال : فني متخصص بخبرة طويلة في المجال، أقدّم خدماتي بدقة واحترافية عالية، وأسعى دائمًا لرضا العميل وجودة العمل. جاهز لتنفيذ الأعمال المطلوبة في الوقت المحدد وبأسعار مناسبة. ثقتكم هي سر نجاحي.').copyWith(
+            counterText: '${_bioController.text.length}/80',
+              hintStyle: TextStyle(
+                fontSize: 12,
+                color: Colors.grey
+              ),
               counterStyle: TextStyle(
-                color: _bioController.text.length < 80 ? Colors.red : Colors.green,
+                color: _bioController.text.length < 80 ? Colors.red : Colors
+                    .green,
                 fontSize: 12,
               ),
             ),
@@ -536,91 +610,92 @@ class _RegisterScreenState extends State<RegisterScreen> {
           const SizedBox(height: 8),
           !_isCategoriesFetched
               ? const Center(
-                  child: CircularProgressIndicator(),
-                )
+            child: CircularProgressIndicator(),
+          )
               : DropdownButtonFormField<int>(
-                  decoration: buildInputDecoration(hintText: 'Specialization'.tr()),
-                  items: categories!.response!
-                      .map((e) => DropdownMenuItem<int>(
-                          value: e.id, child: Text(e.title)))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedCategoryId = value;
-                      _isSubCategoriesFetched = false;
-                      subCategories = null;
-                    });
-                    _fetchSubCategories(value!).then((response) {
-                      setState(() {
-                        subCategories = response;
-                        _isSubCategoriesFetched = true;
-                      });
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'الرجاء اختيار التخصص';
-                    }
-                    return null;
-                  },
-                ),
+            decoration: buildInputDecoration(hintText: 'Specialization'.tr()),
+            items: categories!.response!
+                .map((e) =>
+                DropdownMenuItem<int>(
+                    value: e.id, child: Text(e.title)))
+                .toList(),
+            onChanged: (value) {
+              setState(() {
+                selectedCategoryId = value;
+                _isSubCategoriesFetched = false;
+                subCategories = null;
+              });
+              _fetchSubCategories(value!).then((response) {
+                setState(() {
+                  subCategories = response;
+                  _isSubCategoriesFetched = true;
+                });
+              });
+            },
+            validator: (value) {
+              if (value == null) {
+                return 'الرجاء اختيار التخصص';
+              }
+              return null;
+            },
+          ),
           const SizedBox(height: 8),
           // LabelText(text: 'إضافة تخصص فرعي'.tr()),
           // const SizedBox(height: 8),
           if (selectedCategoryId != null && _isSubCategoriesFetched)
             subCategories!.status == ResponseStatus.success
                 ? // Horizontal ListView to display subcategories
-                Container(
-                    height:
-                        50, // Set height to control the size of the ListView
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal, // Horizontal scroll
-                      itemCount: subCategories!.response!.length,
-                      itemBuilder: (context, index) {
-                        final e = subCategories!.response![index];
-                        bool isSelected = selectedCategoriesSubcategories[
-                                    selectedCategoryId] !=
-                                null &&
-                            selectedCategoriesSubcategories[selectedCategoryId]!
-                                .contains(e);
+            Container(
+                height:
+                50, // Set height to control the size of the ListView
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal, // Horizontal scroll
+                  itemCount: subCategories!.response!.length,
+                  itemBuilder: (context, index) {
+                    final e = subCategories!.response![index];
+                    bool isSelected = selectedCategoriesSubcategories[
+                    selectedCategoryId] !=
+                        null &&
+                        selectedCategoriesSubcategories[selectedCategoryId]!
+                            .contains(e);
 
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                if (selectedCategoriesSubcategories[
-                                        selectedCategoryId!] ==
-                                    null) {
-                                  selectedCategoriesSubcategories[
-                                      selectedCategoryId!] = [e];
-                                } else {
-                                  if (isSelected) {
-                                    selectedCategoriesSubcategories[
-                                            selectedCategoryId!]!
-                                        .remove(e);
-                                  } else {
-                                    selectedCategoriesSubcategories[
-                                            selectedCategoryId!]!
-                                        .add(e);
-                                  }
-                                }
-                              });
-                            },
-                            child: Chip(
-                              label: Text(e.title),
-                              backgroundColor: Colors.black26,
-                              // backgroundColor:
-                              //     isSelected ? Colors.green : Colors.blueAccent,
-                              labelStyle: TextStyle(color: Colors.white),
-                              deleteIcon: isSelected
-                                  ? Icon(Icons.check, color: Colors.white)
-                                  : null,
-                            ),
-                          ),
-                        );
-                      },
-                    ))
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            if (selectedCategoriesSubcategories[
+                            selectedCategoryId!] ==
+                                null) {
+                              selectedCategoriesSubcategories[
+                              selectedCategoryId!] = [e];
+                            } else {
+                              if (isSelected) {
+                                selectedCategoriesSubcategories[
+                                selectedCategoryId!]!
+                                    .remove(e);
+                              } else {
+                                selectedCategoriesSubcategories[
+                                selectedCategoryId!]!
+                                    .add(e);
+                              }
+                            }
+                          });
+                        },
+                        child: Chip(
+                          label: Text(e.title),
+                          backgroundColor: Colors.black26,
+                          // backgroundColor:
+                          //     isSelected ? Colors.green : Colors.blueAccent,
+                          labelStyle: TextStyle(color: Colors.white),
+                          deleteIcon: isSelected
+                              ? Icon(Icons.check, color: Colors.white)
+                              : null,
+                        ),
+                      ),
+                    );
+                  },
+                ))
                 : const Center(child: Text('Error fetching subcategories')),
 
           const SizedBox(height: 16),
@@ -630,26 +705,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
           const SizedBox(height: 8),
           !_isCitiesFetched
               ? const Center(
-                  child: CircularProgressIndicator(),
-                )
+            child: CircularProgressIndicator(),
+          )
               : DropdownButtonFormField<int>(
-                  decoration: buildInputDecoration(hintText: 'City'.tr()),
-                  items: cities!.response!
-                      .map((e) => DropdownMenuItem<int>(
-                          value: e.id, child: Text(e.title ?? 'UNKNOWN')))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedCityId = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'الرجاء اختيار المدينة';
-                    }
-                    return null;
-                  },
-                ),
+            decoration: buildInputDecoration(hintText: 'City'.tr()),
+            items: cities!.response!
+                .map((e) =>
+                DropdownMenuItem<int>(
+                    value: e.id, child: Text(e.title ?? 'UNKNOWN')))
+                .toList(),
+            onChanged: (value) {
+              setState(() {
+                selectedCityId = value;
+              });
+            },
+            validator: (value) {
+              if (value == null) {
+                return 'الرجاء اختيار المدينة';
+              }
+              return null;
+            },
+          ),
           const SizedBox(height: 16),
           LabelText(text: 'رقم جواز السفر'.tr()),
           const SizedBox(height: 8),
@@ -668,7 +744,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Expanded(child: buildIdProofBox('صورة شخصية', 'idSelfie')),
             ],
           ),
-          if (imageDocuments['idFront'] == null || imageDocuments['idSelfie'] == null)
+          if (imageDocuments['idFront'] == null ||
+              imageDocuments['idSelfie'] == null)
             Padding(
               padding: const EdgeInsets.only(top: 8.0),
               child: Text(
@@ -683,96 +760,213 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // Widget buildSelectedSubCategories() {
-  //   List<Widget> selectedSubCategories = [];
-  //
-  //   selectedCategoriesSubcategories.forEach((categoryId, subCategories) {
-  //     for (var subCategory in subCategories) {
-  //       selectedSubCategories.add(
-  //         Padding(
-  //           padding: const EdgeInsets.all(3.0),
-  //           child: Chip(
-  //             label: Text(subCategory.title),
-  //             deleteIcon: const Icon(Icons.cancel),
-  //             onDeleted: () {
-  //               setState(() {
-  //                 selectedCategoriesSubcategories[categoryId]!
-  //                     .remove(subCategory);
-  //                 if (selectedCategoriesSubcategories[categoryId]!.isEmpty) {
-  //                   selectedCategoriesSubcategories.remove(categoryId);
-  //                 }
-  //               });
-  //             },
-  //           ),
-  //         ),
-  //       );
-  //     }
-  //   });
-  //
-  //   return selectedSubCategories.isNotEmpty
-  //       ? Column(
-  //           crossAxisAlignment: CrossAxisAlignment.start,
-  //           children: [
-  //             LabelText(text: 'التخصصات الفرعية المٌختارة'.tr()),
-  //             const SizedBox(height: 8),
-  //             Container(
-  //               height: 50, // Set a fixed height for the horizontal list
-  //               child: ListView(
-  //                 scrollDirection:
-  //                     Axis.horizontal, // Enable horizontal scrolling
-  //                 children: selectedSubCategories,
-  //               ),
-  //             ),
-  //           ],
-  //         )
-  //       : const Center(child: Text('لم يتم اختيار أي تخصصات فرعية'));
-  // }
-
   Widget phoneNumber() {
-    return TextFormField(
-      readOnly: false,
-      autovalidateMode: AutovalidateMode.onUserInteraction,
-      controller: phoneController,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'من فضلك أدخل رقم الهاتف';
-        }
-        if (value.length < 10) {
-          return 'رقم الهاتف يجب أن يكون 10 أرقام على الأقل';
-        }
-        if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
-          return 'رقم الهاتف يجب أن يحتوي على أرقام فقط';
-        }
-        if (!value.startsWith('09')) {
-          return 'رقم الهاتف يجب أن يبدأ بـ 09';
-        }
-        return null;
-      },
-      maxLines: 1,
-      decoration: InputDecoration(
-        fillColor: Colors.white,
-        filled: true,
-        enabledBorder: InputBorders.enabledBorder,
-        errorBorder: InputBorders.errorBorder,
-        focusedBorder: InputBorders.focusedBorder,
-        focusedErrorBorder: InputBorders.focusedErrorBorder,
-        hintText: 'ex: 09XXXXXXXX'.tr(),
-        alignLabelWithHint: true,
-        hintStyle: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w300,
-            color: MyColors.LightDark),
-      ),
-      style: const TextStyle(
-          fontSize: 16, fontWeight: FontWeight.w400, color: MyColors.Darkest),
-      keyboardType: TextInputType.number,
-      inputFormatters: [
-        FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(10)
+    String otp = "";
+    return Column(
+      children: [
+        TextFormField(
+          readOnly: _showAllFields,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          controller: phoneController,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'من فضلك أدخل رقم الهاتف';
+            }
+            if (value.length < 10) {
+              return 'رقم الهاتف يجب أن يكون 10 أرقام على الأقل';
+            }
+            if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+              return 'رقم الهاتف يجب أن يحتوي على أرقام فقط';
+            }
+            if (!value.startsWith('09')) {
+              return 'رقم الهاتف يجب أن يبدأ بـ 09';
+            }
+            return null;
+          },
+          maxLines: 1,
+          decoration: InputDecoration(
+            fillColor: Colors.white,
+            filled: true,
+            enabledBorder: InputBorders.enabledBorder,
+            errorBorder: InputBorders.errorBorder,
+            focusedBorder: InputBorders.focusedBorder,
+            focusedErrorBorder: InputBorders.focusedErrorBorder,
+            hintText: 'ex: 09XXXXXXXX'.tr(),
+            alignLabelWithHint: true,
+            hintStyle: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w300,
+                color: MyColors.LightDark),
+          ),
+          style: TextStyle(
+              fontSize: 16, 
+              fontWeight: FontWeight.w400, 
+              color: _showAllFields ? Colors.grey : MyColors.Darkest),
+          keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(10)
+          ],
+          onTapOutside: (event) {
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+          onChanged: (value) {
+            setState(() {});
+          },
+        ),
+        Visibility(
+          visible: !_showAllFields,
+            child: const SizedBox(height: 16)),
+
+        if (phoneController.text.isNotEmpty && phoneController.text.length >= 10 && !_showOTPFields && !_showAllFields)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              onPressed: _showAllFields 
+                  ? null 
+                  : () async {
+                if (phoneController.text.isEmpty || phoneController.text.length < 10) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: Color(0xffBF3131),
+                      content: Text(
+                        'الرجاء إدخال رقم هاتف صحيح',
+                        style: TextStyle(color: Color(0xffEEEEEE)),
+                      ),
+                    ),
+                  );
+                  return;
+                }
+
+                setState(() {
+                  _isLoading = true;
+                });
+
+                try {
+                  final response = await Provider.of<Auth>(context, listen: false)
+                      .sendOTPNew(phoneNumber: phoneController.text);
+
+                if (response.status == ResponseStatus.success) {
+                  setState(() {
+                    _showOTPFields = true;
+                  });
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: Color(0xffBF3131),
+                      content: Text(
+                        response.errorMessage ?? 'حدث خطأ أثناء إرسال رمز التحقق',
+                        style: TextStyle(color: Color(0xffEEEEEE)),
+                      ),
+                    ),
+                  );
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: Color(0xffBF3131),
+                    content: Text(
+                      'حدث خطأ أثناء إرسال رمز التحقق',
+                      style: TextStyle(color: Color(0xffEEEEEE)),
+                    ),
+                  ),
+                );
+              } finally {
+                setState(() {
+                  _isLoading = false;
+                });
+              }
+            },
+            child: Text(
+              'تحقق من رقم الهاتف',
+              style: TextStyle(
+                color: _showAllFields ? Colors.grey : MyColors.MainBulma,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+        if (_showOTPFields) ...[
+          const SizedBox(height: 16),
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: PinCodeTextField(
+              appContext: context,
+              length: 6,
+              onChanged: (value) {
+                otp = value;
+              },
+              onCompleted: (value) async {
+                setState(() {
+                  _isLoading = true;
+                });
+                try {
+                  final response = await http.post(
+                    Uri.parse('https://dev.ajeer.cloud/customer/checkotp'),
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: jsonEncode({
+                      'phone': phoneController.text,
+                      'message': value,
+                    }),
+                  );
+
+                  if (response.statusCode == 200) {
+                    setState(() {
+                      _showAllFields = true;
+                      _showOTPFields = false;
+                    });
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: Color(0xffBF3131),
+                        content: Text(
+                          'رمز التحقق غير صحيح',
+                          style: TextStyle(color: Color(0xffEEEEEE)),
+                        ),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: Color(0xffBF3131),
+                      content: Text(
+                        'حدث خطأ أثناء عملية التحقق',
+                        style: TextStyle(color: Color(0xffEEEEEE)),
+                      ),
+                    ),
+                  );
+                } finally {
+                  setState(() {
+                    _isLoading = false;
+                  });
+                }
+              },
+              pinTheme: PinTheme(
+                selectedFillColor: Colors.white,
+                inactiveFillColor: Colors.white,
+                activeFillColor: Colors.white,
+                activeColor: MyColors.MainBeerus,
+                inactiveColor: MyColors.MainBeerus,
+                shape: PinCodeFieldShape.box,
+                borderRadius: BorderRadius.circular(16.0),
+                fieldHeight: MediaQuery.of(context).size.width / 7,
+                fieldWidth: MediaQuery.of(context).size.width / 7.6,
+              ),
+              cursorColor: Colors.black,
+              keyboardType: TextInputType.number,
+              textStyle: const TextStyle(
+                fontSize: 18,
+                color: MyColors.MainZeno,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ],
-      onTapOutside: (event) {
-        FocusManager.instance.primaryFocus?.unfocus();
-      },
     );
   }
 
@@ -943,14 +1137,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
             onTap: () => pickImage(type),
             child: imageDocuments[type] != null
                 ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.file(
-                      imageDocuments[type]!,
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.cover,
-                    ),
-                  )
+              borderRadius: BorderRadius.circular(8),
+              child: Image.file(
+                imageDocuments[type]!,
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
+              ),
+            )
                 : SvgPicture.asset('assets/svg/add_image_frame.svg'),
           ),
         ],
@@ -961,7 +1155,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future pickImage(String type) async {
     try {
       final XFile? _image =
-          await ImagePicker().pickImage(source: ImageSource.gallery);
+      await ImagePicker().pickImage(source: ImageSource.gallery);
 
       if (_image == null) return;
       setState(() {

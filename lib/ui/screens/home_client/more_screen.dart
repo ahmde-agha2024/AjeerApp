@@ -27,6 +27,7 @@ class MoreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Column(
         children: [
           Stack(
@@ -250,26 +251,29 @@ class MoreScreen extends StatelessWidget {
                       bool? confirmLogout = await showDialog<bool>(
                         context: context,
                         builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Text("Confirmation Log Out".tr()),
-                            content:
-                                Text("Are you sure you want to log out?".tr()),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop(false);
-                                },
-                                child: Text('No'.tr()),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop(true);
-                                },
-                                child: Text(
-                                  'Yes'.tr(),
+                          return Directionality(
+                            textDirection: TextDirection.rtl,
+                            child: AlertDialog(
+                              title: Text("Confirmation Log Out".tr()),
+                              content:
+                                  Text("Are you sure you want to log out?".tr()),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop(false);
+                                  },
+                                  child: Text('No'.tr()),
                                 ),
-                              )
-                            ],
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop(true);
+                                  },
+                                  child: Text(
+                                    'Yes'.tr(),
+                                  ),
+                                )
+                              ],
+                            ),
                           );
                         },
                       );

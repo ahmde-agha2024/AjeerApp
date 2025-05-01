@@ -6,13 +6,16 @@ import 'dart:convert';
 
 import 'package:ajeer/models/common/category_model.dart';
 import 'package:ajeer/models/customer/provider/service_provider_account.dart';
+import 'package:ajeer/models/customer/provider/slider_model.dart'
+    show SliderModel;
 import 'package:ajeer/models/customer/service_model.dart';
 
-ProviderHomePage providerHomePageFromJson(String str) => ProviderHomePage.fromJson(json.decode(str));
+ProviderHomePage providerHomePageFromJson(String str) =>
+    ProviderHomePage.fromJson(json.decode(str));
 
 class ProviderHomePage {
   ServiceProviderAccount? providerAccount;
-  List<Category>? sliders;
+  List<SliderModel>? sliders;
   List<Category>? categories;
   List<Service>? latestServices;
   List<dynamic>? workingOn;
@@ -31,15 +34,33 @@ class ProviderHomePage {
     this.chart,
   });
 
-  factory ProviderHomePage.fromJson(Map<String, dynamic> json) => ProviderHomePage(
-        providerAccount: json["user"] == null ? null : ServiceProviderAccount.fromJson(json["user"]),
-        sliders: json["sliders"] == null ? [] : List<Category>.from(json["sliders"]!.map((x) => Category.fromJson(x))),
-        categories: json["categories"] == null ? [] : List<Category>.from(json["categories"]!.map((x) => Category.fromJson(x))),
-        latestServices: json["latest_services"] == null ? [] : List<Service>.from(json["latest_services"]!.map((x) => Service.fromJson(x))),
-        workingOn: json["working_on"] == null ? [] : List<dynamic>.from(json["working_on"]!.map((x) => x)),
-        pendingOffers: json["pending_offers"] == null ? [] : List<dynamic>.from(json["pending_offers"]!.map((x) => x)),
+  factory ProviderHomePage.fromJson(Map<String, dynamic> json) =>
+      ProviderHomePage(
+        providerAccount: json["user"] == null
+            ? null
+            : ServiceProviderAccount.fromJson(json["user"]),
+        sliders: json["sliders"] == null
+            ? []
+            : List<SliderModel>.from(
+                json["sliders"]!.map((x) => SliderModel.fromJson(x))),
+        categories: json["categories"] == null
+            ? []
+            : List<Category>.from(
+                json["categories"]!.map((x) => Category.fromJson(x))),
+        latestServices: json["latest_services"] == null
+            ? []
+            : List<Service>.from(
+                json["latest_services"]!.map((x) => Service.fromJson(x))),
+        workingOn: json["working_on"] == null
+            ? []
+            : List<dynamic>.from(json["working_on"]!.map((x) => x)),
+        pendingOffers: json["pending_offers"] == null
+            ? []
+            : List<dynamic>.from(json["pending_offers"]!.map((x) => x)),
         stats: json["stats"] == null ? null : Stats.fromJson(json["stats"]),
-        chart: json["chart"] == null ? null : ProviderHomeChart.fromJson(json["chart"]),
+        chart: json["chart"] == null
+            ? null
+            : ProviderHomeChart.fromJson(json["chart"]),
       );
 }
 
@@ -69,10 +90,17 @@ class ProviderHomeChart {
     this.services,
   });
 
-  factory ProviderHomeChart.fromJson(Map<String, dynamic> json) => ProviderHomeChart(
-        months: json["months"] == null ? [] : List<String>.from(json["months"]!.map((x) => x)),
-        offers: json["offers"] == null ? [] : List<int>.from(json["offers"]!.map((x) => x)),
-        services: json["services"] == null ? [] : List<int>.from(json["services"]!.map((x) => x)),
+  factory ProviderHomeChart.fromJson(Map<String, dynamic> json) =>
+      ProviderHomeChart(
+        months: json["months"] == null
+            ? []
+            : List<String>.from(json["months"]!.map((x) => x)),
+        offers: json["offers"] == null
+            ? []
+            : List<int>.from(json["offers"]!.map((x) => x)),
+        services: json["services"] == null
+            ? []
+            : List<int>.from(json["services"]!.map((x) => x)),
       );
 }
 
@@ -122,8 +150,12 @@ class Customer {
         address: json["address"],
         wallet: json["wallet"],
         points: json["points"],
-        createdAt: json["created_at"] == null ? null : DateTime.parse(json["created_at"]),
-        updatedAt: json["updated_at"] == null ? null : DateTime.parse(json["updated_at"]),
+        createdAt: json["created_at"] == null
+            ? null
+            : DateTime.parse(json["created_at"]),
+        updatedAt: json["updated_at"] == null
+            ? null
+            : DateTime.parse(json["updated_at"]),
       );
 }
 

@@ -204,6 +204,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       (route) => false);
                                 }
                               } else if (response.errorMessage != null) {
+                                print("ljhkjiuhiu");
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                       backgroundColor: Color(0xffBF3131),
@@ -237,11 +238,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                       backgroundColor: Color(0xffBF3131),
-
-                                      content: Text("حاول مرة أخرى",style: TextStyle(
-                                          color: Color(0xffEEEEEE)
-                                      ),)),
+                                      content: Text(
+                                        "رقم الهاتف او كلمة المرور غير صحيحة",
+                                        style:
+                                        TextStyle(color: Color(0xffEEEEEE)),
+                                      )),
                                 );
+
                               }
                             }
                           },

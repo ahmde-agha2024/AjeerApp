@@ -11,7 +11,6 @@ class CategoryListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Padding(
       padding: const EdgeInsetsDirectional.only(start: 16),
       child: SizedBox(
@@ -22,7 +21,8 @@ class CategoryListView extends StatelessWidget {
           shrinkWrap: true,
           itemBuilder: (context, index) {
             return Padding(
-              padding: const EdgeInsetsDirectional.only(end: 16,top: 10,bottom: 10,start: 10),
+              padding: const EdgeInsetsDirectional.only(
+                  end: 16, top: 10, bottom: 10, start: 10),
               child: SingleCategoryCard(
                 title: categories[index].title,
                 imagePath: categories[index].image,

@@ -162,7 +162,7 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
                                     (amIProvider && isProviderSender) ||
                                         (!amIProvider && !isProviderSender);
                                 final formattedTime = DateFormat('hh:mm a')
-                                    .format(message.createdAt!);
+                                    .format(message.createdAt!.add(const Duration(hours: 2)));
                                 return isSentMessage
                                     ? _buildSentMessage(
                                         message: message.message!,

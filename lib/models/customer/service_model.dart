@@ -108,7 +108,7 @@ class Service {
         stars: json["stars"],
         views: json["views"],
         status: json["status"],
-        service_status: json["service_status"],
+        service_status: json["service_status"]??"NEW",
         featured: json["featured"],
         private: json["private"],
         lat: json["lat"],

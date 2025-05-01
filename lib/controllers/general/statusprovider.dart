@@ -2,7 +2,8 @@ import 'dart:convert'; // For encoding the body
 import 'package:ajeer/constants/domain.dart';
 import 'package:ajeer/constants/get_storage.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:pusher_channels_flutter/pusher_channels_flutter.dart' show PusherChannelsFlutter;
+PusherChannelsFlutter pusher = PusherChannelsFlutter.getInstance();
 class StatusProviderController {
   static Future<bool> changeStatus(String serviceId, String status) async {
     String url = '${BaseURL.baseServiceProviderUrl}/change-status';
@@ -23,7 +24,9 @@ class StatusProviderController {
         },
         body: json.encode(body), // Convert the body map into a JSON string
       );
-print(response.body);
+
+
+      print(response.body);
       if (response.statusCode == 200) {
         print('Response data: ${response.body}');
         return true;

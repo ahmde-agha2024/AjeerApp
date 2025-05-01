@@ -487,7 +487,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                                         .of<CustomerOrdersProvider>(context,
                                             listen: false)
                                     .requestNewService(
-                                        status: "NEW_OFFER",
+                                        status: "NEW",
                                         title: _offerNameController.text,
                                         content:
                                             _offerDescriptionController.text,

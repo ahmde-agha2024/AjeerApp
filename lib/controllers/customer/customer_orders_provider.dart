@@ -262,7 +262,7 @@ class CustomerOrdersProvider with ChangeNotifier {
       if (!await checkResponseHttp(response)) {
         return handledResponse;
       }
-
+print(response.statusCode);
       if (response.statusCode == 200) {
         handledResponse.status = ResponseStatus.success;
       } else if (jsonDecode(response.body)['message'] != null) {

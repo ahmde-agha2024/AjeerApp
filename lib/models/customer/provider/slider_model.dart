@@ -4,6 +4,8 @@ class SliderModel {
   String content;
   String image;
   int status;
+  int categoryId;
+  String type;
   DateTime createdAt;
   DateTime updatedAt;
 
@@ -15,6 +17,8 @@ class SliderModel {
     required this.createdAt,
     required this.updatedAt,
     required this.content,
+    required this.categoryId,
+    required this.type
   });
 
   factory SliderModel.fromJson(Map<String, dynamic> json) => SliderModel(
@@ -23,6 +27,8 @@ class SliderModel {
     content: json["content"],
     image: json["image"],
     status: json["status"],
+    categoryId: json["category_id"],
+    type: json["type"],
     createdAt: DateTime.parse(json["created_at"]),
     updatedAt: DateTime.parse(json["updated_at"]),
   );

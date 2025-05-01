@@ -35,7 +35,6 @@ class CustomerHomeProvider with ChangeNotifier {
       if (!await checkResponseHttp(response)) {
         return handledResponse;
       }
-
       if (response.statusCode == 200) {
         handledResponse.status = ResponseStatus.success;
         _customerHome = customerHomeFromJson(response.body);

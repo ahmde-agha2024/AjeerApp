@@ -1,5 +1,6 @@
 import 'package:ajeer/constants/utils.dart';
 import 'package:ajeer/controllers/customer/customer_orders_provider.dart';
+import 'package:ajeer/controllers/general/statusprovider.dart';
 import 'package:ajeer/models/customer/service_model.dart';
 import 'package:ajeer/ui/widgets/common/error_widget.dart';
 import 'package:ajeer/ui/widgets/common/loader_widget.dart';
@@ -10,6 +11,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:localize_and_translate/localize_and_translate.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import 'package:pusher_channels_flutter/pusher_channels_flutter.dart' show PusherChannelsFlutter;
 
 import '../../../constants/my_colors.dart';
 import '../../widgets/button_styles.dart';
@@ -33,8 +35,9 @@ class _MyRequestsScreenState extends State<MyRequestsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _tabController.addListener(_handleTabSelection);
+    connectPusher();
   }
 
   @override
@@ -43,6 +46,31 @@ class _MyRequestsScreenState extends State<MyRequestsScreen>
       _fetchData();
     }
     super.didChangeDependencies();
+  }
+  Future<void> connectPusher() async {
+    pusher = PusherChannelsFlutter.getInstance();
+
+    try {
+      await pusher.init(
+        apiKey: '0727f1f58b92a8e76b84', // مفتاحك هنا
+        cluster: 'eu', // كلسترك هنا
+        onEvent: (event) {
+          print('📢 Event received: ${event.eventName}');
+          print('📃 Event data: ${event.data}');
+        },
+      );
+
+      await pusher.subscribe(
+          channelName: 'service-status',
+          onEvent: (event) async{
+            await  _fetchData();
+          });
+
+      await pusher.connect();
+      print('✅ Pusher connected.');
+    } catch (e) {
+      print('❌ Error connecting to Pusher: $e');
+    }
   }
 
   Future<void> _fetchData() async {
@@ -88,6 +116,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Column(
         children: [
           const SizedBox(height: 66),
@@ -95,7 +124,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen>
             title: 'My requests',
           ),
           SizedBoxedH24,
-          if (!_isFetched) loaderWidget(context,type: "tab_view"),
+          if (!_isFetched) loaderWidget(context, type: "tab_view"),
           if (_isFetched &&
               customerServicesResponse!.status == ResponseStatus.error)
             Column(
@@ -146,9 +175,10 @@ class _MyRequestsScreenState extends State<MyRequestsScreen>
                   tabAlignment: TabAlignment.start,
                   tabs: [
                     _buildCategoryItem('جديد', 0),
-                    _buildCategoryItem('جاري التنفيذ', 1),
-                    _buildCategoryItem('منتهي', 2),
-                    _buildCategoryItem('ملغي', 3),
+                    _buildCategoryItem('المقبولة', 1),
+                    _buildCategoryItem('في الطريق', 2),
+                    _buildCategoryItem('جاري التنفيذ', 3),
+                    _buildCategoryItem('مكتمل', 4),
                   ],
                 ),
               ),
@@ -171,31 +201,44 @@ class _MyRequestsScreenState extends State<MyRequestsScreen>
                       onRefresh: _fetchData,
                       child: _buildListView(customerServicesResponse!
                           .response!.currentServices
-                          .where((element) => element.status == 'NEW')
+                          .where((element) => element.service_status == 'NEW')
                           .toList()),
                     ),
                     RefreshIndicator(
                       onRefresh: _fetchData,
                       child: _buildListView(customerServicesResponse!
                           .response!.currentServices
-                          .where(
-                              (element) => element.status == 'OFFER_ACCEPTED')
+                          .where((element) => element.service_status == 'NEW_OFFER')
                           .toList()),
                     ),
                     RefreshIndicator(
                       onRefresh: _fetchData,
                       child: _buildListView(customerServicesResponse!
-                          .response!.doneServices
-                          .where((element) => element.status == 'DONE')
+                          .response!.currentServices
+                          .where((element) => element.service_status == 'onWay')
                           .toList()),
                     ),
                     RefreshIndicator(
                       onRefresh: _fetchData,
                       child: _buildListView(customerServicesResponse!
-                          .response!.doneServices
-                          .where((element) => element.status == 'CANCELED')
+                          .response!.currentServices.where(
+                              (element) => element.service_status == 'Work_Now')
                           .toList()),
                     ),
+                    RefreshIndicator(
+                      onRefresh: _fetchData,
+                      child: _buildListView(customerServicesResponse!
+                          .response!.currentServices
+                          .where((element) => element.service_status == 'done_Work')
+                          .toList()),
+                    ),
+                    // RefreshIndicator(
+                    //   onRefresh: _fetchData,
+                    //   child: _buildListView(customerServicesResponse!
+                    //       .response!.currentServices
+                    //       .where((element) => element.status == 'CANCELED')
+                    //       .toList()),
+                    // ),
                   ],
                 ),
               ),
@@ -231,6 +274,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen>
       itemBuilder: (ctx, index) {
         return ServiceRequestCard(
           requestedService: services[index],
+          index: index,
           onRefresh: _fetchData,
         );
       },
@@ -241,9 +285,9 @@ class _MyRequestsScreenState extends State<MyRequestsScreen>
 class ServiceRequestCard extends StatefulWidget {
   Service requestedService;
   final VoidCallback onRefresh;
-
+int index;
   ServiceRequestCard(
-      {super.key, required this.requestedService, required this.onRefresh});
+      {super.key, required this.requestedService, required this.onRefresh,required this.index});
 
   @override
   State<ServiceRequestCard> createState() => _ServiceRequestCardState();
@@ -307,12 +351,32 @@ class _ServiceRequestCardState extends State<ServiceRequestCard> {
                 child: Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: Text(
-                    widget.requestedService.status!.tr(),
+                  child: widget.requestedService.service_status =="NEW"?Text(
+                    "جديد",
                     style: const TextStyle(
                       color: MyColors.MainBulma,
                     ),
-                  ),
+                  ):widget.requestedService.service_status =="NEW_OFFER"?Text(
+                    "تم قبول الطلب",
+                    style: const TextStyle(
+                      color: MyColors.MainBulma,
+                    ),
+                  ):widget.requestedService.service_status =="onWay"?Text(
+                    "الفني في الطريق",
+                    style: const TextStyle(
+                      color: MyColors.MainBulma,
+                    ),
+                  ):widget.requestedService.service_status =="Work_Now"?Text(
+                    "يتم التنفيذ الأن",
+                    style: const TextStyle(
+                      color: MyColors.MainBulma,
+                    ),
+                  ):widget.requestedService.service_status =="done_Work"?Text(
+                    "إكتمل العمل",
+                    style: const TextStyle(
+                      color: MyColors.MainBulma,
+                    ),
+                  ):SizedBox(),
                 ),
               ),
             ),
@@ -345,7 +409,11 @@ class _ServiceRequestCardState extends State<ServiceRequestCard> {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => RequestDetailsScreen(
-                                  requestedService: widget.requestedService),
+                                requestedService: widget.requestedService,
+                                index: widget.index,
+
+
+                              ),
                             ),
                           );
                         },
@@ -450,7 +518,8 @@ class _ServiceRequestCardState extends State<ServiceRequestCard> {
                                                   'OFFER_ACCEPTED') {
                                                 ScaffoldMessenger.of(context)
                                                     .showSnackBar(SnackBar(
-                                                  behavior: SnackBarBehavior.floating,
+                                                  behavior:
+                                                      SnackBarBehavior.floating,
                                                   content: Text(
                                                       "تم إنهاء الخدمة بنجاح"
                                                           .tr()),
@@ -458,7 +527,8 @@ class _ServiceRequestCardState extends State<ServiceRequestCard> {
                                               } else {
                                                 ScaffoldMessenger.of(context)
                                                     .showSnackBar(SnackBar(
-                                                  behavior: SnackBarBehavior.floating,
+                                                  behavior:
+                                                      SnackBarBehavior.floating,
                                                   content: Text(
                                                       "تم إلغاء الخدمة بنجاح"
                                                           .tr()),
@@ -470,7 +540,8 @@ class _ServiceRequestCardState extends State<ServiceRequestCard> {
                                                 null) {
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(SnackBar(
-                                                behavior: SnackBarBehavior.floating,
+                                                behavior:
+                                                    SnackBarBehavior.floating,
                                                 content: Text(handledResponse
                                                     .errorMessage!
                                                     .tr()),
@@ -478,7 +549,8 @@ class _ServiceRequestCardState extends State<ServiceRequestCard> {
                                             } else {
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(SnackBar(
-                                                behavior: SnackBarBehavior.floating,
+                                                behavior:
+                                                    SnackBarBehavior.floating,
                                                 content:
                                                     Text("Error Occurred".tr()),
                                               ));

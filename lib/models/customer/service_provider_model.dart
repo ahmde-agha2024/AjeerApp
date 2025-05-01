@@ -1,8 +1,12 @@
 import 'package:ajeer/models/common/category_model.dart';
 
-List<ServiceProvider> serviceProviderFromJson(List providersList) => List<ServiceProvider>.from(providersList.map((x) => ServiceProvider.fromJson(x)));
+List<ServiceProvider> serviceProviderFromJson(List providersList) =>
+    List<ServiceProvider>.from(
+        providersList.map((x) => ServiceProvider.fromJson(x)));
 
-List<ServiceProvider> favoriteProvidersFromJson(List providersList) => List<ServiceProvider>.from(providersList.map((x) => ServiceProvider.fromJson(x)));
+List<ServiceProvider> favoriteProvidersFromJson(List providersList) =>
+    List<ServiceProvider>.from(
+        providersList.map((x) => ServiceProvider.fromJson(x)));
 
 class ServiceProvider {
   int id;
@@ -24,30 +28,32 @@ class ServiceProvider {
   Category? category;
   DateTime? createdAt;
   DateTime? updatedAt;
+  int? offer_count;
 
-  ServiceProvider({
-    required this.id,
-    required this.name,
-    this.email,
-    this.phone,
-    this.image,
-    this.address,
-    this.lat,
-    this.lng,
-    this.nationalId,
-    this.commercialRegister,
-    this.taxCard,
-    this.wallet,
-    this.points,
-    this.stars,
-    this.status,
-    this.verified,
-    this.category,
-    this.createdAt,
-    this.updatedAt,
-  });
+  ServiceProvider(
+      {required this.id,
+      required this.name,
+      this.email,
+      this.phone,
+      this.image,
+      this.address,
+      this.lat,
+      this.lng,
+      this.nationalId,
+      this.commercialRegister,
+      this.taxCard,
+      this.wallet,
+      this.points,
+      this.stars,
+      this.status,
+      this.verified,
+      this.category,
+      this.createdAt,
+      this.updatedAt,
+      this.offer_count});
 
-  factory ServiceProvider.fromJson(Map<String, dynamic> json) => ServiceProvider(
+  factory ServiceProvider.fromJson(Map<String, dynamic> json) =>
+      ServiceProvider(
         id: json["id"],
         name: json["name"],
         email: json["email"],
@@ -64,8 +70,15 @@ class ServiceProvider {
         status: json["status"],
         stars: double.parse(json["stars"].toString()),
         verified: json["verified"],
-        category: json["category"] == null ? null : Category.fromJson(json["category"]),
-        createdAt: json["created_at"] == null ? null : DateTime.parse(json["created_at"]),
-        updatedAt: json["updated_at"] == null ? null : DateTime.parse(json["updated_at"]),
+        offer_count: json["offer_count"],
+        category: json["category"] == null
+            ? null
+            : Category.fromJson(json["category"]),
+        createdAt: json["created_at"] == null
+            ? null
+            : DateTime.parse(json["created_at"]),
+        updatedAt: json["updated_at"] == null
+            ? null
+            : DateTime.parse(json["updated_at"]),
       );
 }

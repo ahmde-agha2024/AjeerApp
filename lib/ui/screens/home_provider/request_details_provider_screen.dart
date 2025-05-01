@@ -5,19 +5,25 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:photo_view/photo_view.dart';
-import 'package:url_launcher/url_launcher.dart';
-
+import '../../../constants/get_storage.dart';
 import '../../../constants/my_colors.dart';
 import '../../../controllers/general/statusprovider.dart';
+import '../../../controllers/service_provider/provider_services_provider.dart';
 import '../../widgets/appbar_title.dart';
 import '../../widgets/button_styles.dart';
+import '../../widgets/common/status_tracker_widget.dart';
 import '../../widgets/sized_box.dart';
 import '../../widgets/title_section.dart';
 
 class RequestDetailsProviderScreen extends StatefulWidget {
   Service loadedService;
+  final Function(Service)? onServiceUpdated;
 
-  RequestDetailsProviderScreen({super.key, required this.loadedService});
+  RequestDetailsProviderScreen({
+    super.key,
+    required this.loadedService,
+    this.onServiceUpdated,
+  });
 
   @override
   State<RequestDetailsProviderScreen> createState() =>
@@ -28,10 +34,30 @@ class _RequestDetailsProviderScreenState
     extends State<RequestDetailsProviderScreen> {
   late ResponseHandler<ProviderOffers> providerOffers =
       ResponseHandler(status: ResponseStatus.error);
+  String currentStatus = '';
+  bool isLoading = false;
+  final int providerId = storage.read('provider_id') ?? 0;
+
+  @override
+  void initState() {
+    super.initState();
+    currentStatus = widget.loadedService.service_status!;
+  }
+
+  Future<void> _updateStatus(String newStatus) async {
+    setState(() {
+      currentStatus = newStatus;
+      widget.loadedService.service_status = newStatus;
+    });
+
+    // Notify parent about the update
+    if (widget.onServiceUpdated != null) {
+      widget.onServiceUpdated!(widget.loadedService);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    print(widget.loadedService.image!);
     return Scaffold(
       appBar: AppbarTitle(title: 'طلب رقم #${widget.loadedService.id}'),
       backgroundColor: Colors.white,
@@ -127,19 +153,6 @@ class _RequestDetailsProviderScreenState
                               ],
                             ),
                             SizedBoxedH8,
-                            // Row(
-                            //   children: [
-                            //     SvgPicture.asset('assets/svg/request_calender.svg'),
-                            //     const SizedBox(width: 6),
-                            //     const Text(
-                            //       'حتي 10/8/2024',
-                            //       style: TextStyle(
-                            //         fontSize: 12,
-                            //         color: MyColors.textColor,
-                            //       ),
-                            //     ),
-                            //   ],
-                            // ),
                           ],
                         ),
                       ),
@@ -149,9 +162,128 @@ class _RequestDetailsProviderScreenState
               ),
             ),
           ),
+          Divider(
+            color: Colors.grey.withOpacity(0.1),
+            thickness: 10,
+          ),
           SizedBoxedH16,
-          Divider(color: Colors.grey.withOpacity(0.1), thickness: 10),
-          SizedBoxedH16,
+          if (widget.loadedService.provider?.id == providerId) ...[
+            TitleSections(
+                title: 'حالة الطلب', isViewAll: false, onTapView: () {}),
+            StatusTrackerWidget(currentStatus: currentStatus),
+            SizedBoxedH16,
+            Visibility(
+              visible: currentStatus != 'done_Work' && currentStatus != 'NEW',
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 100),
+                child: TextButton(
+                  style: flatButtonPrimaryStyle,
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          setState(() {
+                            isLoading = true;
+                          });
+                          try {
+                            if (currentStatus == 'NEW_OFFER') {
+                              await StatusProviderController.changeStatus(
+                                  widget.loadedService.id.toString(), "onWay");
+                              await _updateStatus("onWay");
+                            } else if (currentStatus == 'onWay') {
+                              await StatusProviderController.changeStatus(
+                                  widget.loadedService.id.toString(),
+                                  "Work_Now");
+                              await _updateStatus("Work_Now");
+                            } else if (currentStatus == 'Work_Now') {
+                              await StatusProviderController.changeStatus(
+                                  widget.loadedService.id.toString(),
+                                  "done_Work");
+                              await _updateStatus("done_Work");
+                            }
+                          } finally {
+                            setState(() {
+                              isLoading = false;
+                            });
+                          }
+                        },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (isLoading)
+                        const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      else
+                        currentStatus == 'NEW_OFFER'
+                            ? Expanded(
+                                child: const Text(
+                                  textAlign: TextAlign.center,
+                                  "الفني في الطريق",
+                                  style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.white),
+                                ),
+                              )
+                            : currentStatus == 'onWay'
+                                ? const Text(
+                                    textAlign: TextAlign.center,
+                                    "يتم تنفيذ العمل الأن",
+                                    style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.white),
+                                  )
+                                : currentStatus == 'Work_Now'
+                                    ? const Text(
+                                        textAlign: TextAlign.center,
+                                        "إكتمل العمل , تم الدفع",
+                                        style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.white),
+                                      )
+                                    : currentStatus == 'done_Work'
+                                        ? SizedBox()
+                                        : SizedBox(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Visibility(
+              visible: currentStatus == 'done_Work',
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 100),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                  decoration: BoxDecoration(
+                    color: MyColors.MainPrimary,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    textAlign: TextAlign.center,
+                    "إكتمل العمل , تم الدفع",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SizedBoxedH16,
+            Divider(color: Colors.grey.withOpacity(0.1), thickness: 10),
+            SizedBoxedH16,
+          ],
           TitleSections(
               title: 'بيانات العميل', isViewAll: false, onTapView: () {}),
           SizedBoxedH16,
@@ -170,27 +302,9 @@ class _RequestDetailsProviderScreenState
                 fontWeight: FontWeight.bold,
               ),
             ),
-            // subtitle: Text(
-            //   widget.loadedService.customer!.phone!,
-            //   style: const TextStyle(
-            //     fontSize: 14,
-            //     color: MyColors.textColor,
-            //   ),
-            // ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
-              children: [
-                // SvgPicture.asset('assets/svg/location_provider.svg'),
-                // const SizedBox(width: 12),
-                // SvgPicture.asset('assets/svg/message_provider.svg'),
-                // const SizedBox(width: 12),
-
-                // InkWell(
-                //     onTap: () {
-                //       launchUrl(Uri.parse('tel:${widget.loadedService.customer?.phone}'));
-                //     },
-                //     child: SvgPicture.asset('assets/svg/call_provider.svg'))
-              ],
+              children: [],
             ),
           ),
           SizedBoxedH16,
@@ -257,106 +371,6 @@ class _RequestDetailsProviderScreenState
               },
             ),
           ),
-          SizedBoxedH16,
-          TitleSections(
-              title: 'حالة الطلب', isViewAll: false, onTapView: () {}),
-          SizedBoxedH16,
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 100),
-            child: Visibility(
-              child: TextButton(
-                style: flatButtonPrimaryStyle,
-                onPressed: () async {
-                  print(widget.loadedService.service_status);
-                  if (widget.loadedService.service_status == 'NEW_OFFER') {
-                    await StatusProviderController.changeStatus(
-                        widget.loadedService.id.toString(), "onWay");
-                  } else if (widget.loadedService.service_status == 'onWay') {
-                    await StatusProviderController.changeStatus(
-                        widget.loadedService.id.toString(), "Work_Now");
-                  } else if (widget.loadedService.service_status ==
-                      'Work_Now') {
-                    await StatusProviderController.changeStatus(
-                        widget.loadedService.id.toString(), "done_Work");
-                  }
-                },
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    widget.loadedService.service_status == 'NEW_OFFER'
-                        ? Expanded(
-                            child: const Text(
-                              textAlign: TextAlign.center,
-                              "تم قبول العرض , سيتم التنفيذ في الوقت المحدد",
-                              style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white),
-                            ),
-                          )
-                        : widget.loadedService.service_status == 'onWay'
-                            ? const Text(
-                                textAlign: TextAlign.center,
-                                "الفني في الطريق",
-                                style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white),
-                              )
-                            : widget.loadedService.service_status == 'Work_Now'
-                                ? const Text(
-                                    textAlign: TextAlign.center,
-                                    "يتم تنفيذ العمل الأن",
-                                    style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.white),
-                                  )
-                                : widget.loadedService.service_status ==
-                                        'done_Work'
-                                    ? Expanded(
-                                        child: const Text(
-                                          textAlign: TextAlign.center,
-                                          "إكتمل العمل , تم الدفع",
-                                          style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                              color: Colors.white),
-                                        ),
-                                      )
-                                    : SizedBox(),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          // Divider(color: Colors.grey.withOpacity(0.1), thickness: 10),
-          // SizedBoxedH16,
-          // Padding(
-          //   padding: const EdgeInsets.symmetric(horizontal: 16),
-          //   child: SizedBox(
-          //     width: double.infinity,
-          //     height: 64,
-          //     child: TextButton(
-          //       style: flatButtonPrimaryStyle,
-          //       onPressed: () async {
-          //         Navigator.of(context).push(
-          //           MaterialPageRoute(
-          //             builder: (context) => RequestOfferProviderScreen(
-          //               serviceDetails: widget.loadedService,
-          //             ),
-          //           ),
-          //         );
-          //       },
-          //       child: Text(
-          //         'تقديم'.tr(),
-          //         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
-          //       ),
-          //     ),
-          //   ),
-          // ),
-          // SizedBoxedH16,
           SizedBoxedH16,
         ],
       ),
