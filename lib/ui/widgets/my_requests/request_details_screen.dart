@@ -50,7 +50,6 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   ResponseHandler<ServiceDetails>? serviceDetailsResponse;
   ResponseHandler<ServiceResponse>? customerServicesResponse;
 
-
   @override
   void initState() {
     super.initState();
@@ -121,7 +120,6 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppbarTitle(title: 'طلب رقم #${widget.requestedService.id}'),
       backgroundColor: Colors.white,
@@ -357,57 +355,54 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
                           SizedBoxedH16,
                         ],
                       ),
-                    if (widget.requestedService.provider?.offer_count != 0) ...[
-                      serviceDetailsResponse!.response!.acceptedOffer == null
-                          ? TitleSections(
-                              title:
-                                  'العروض ${serviceDetailsResponse!.response!.offers?.length ?? 0}',
-                              isViewAll: false,
-                              onTapView: () {})
-                          : TitleSections(
-                              title: 'العرض المقبول',
-                              isViewAll: false,
-                              onTapView: () {}),
-                      SizedBoxedH16,
-                      SizedBox(
-                        height: 160,
-                        child:
-                            serviceDetailsResponse!.response!.acceptedOffer ==
-                                    null
-                                ? ListView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: serviceDetailsResponse!
-                                            .response!.offers?.length ??
-                                        0,
-                                    itemBuilder: (ctx, index) {
-                                      return ServiceOfferCard(
-                                        offer: serviceDetailsResponse!
-                                            .response!.offers![index],
-                                        service: widget.requestedService,
-                                        onRefresh: () {
-                                          setState(() {
-                                            _isFetched = false;
-                                          });
-                                          didChangeDependencies();
-                                        },
-                                      );
-                                    },
-                                  )
-                                : ServiceOfferCard(
-                                    offer: serviceDetailsResponse!
-                                        .response!.acceptedOffer!,
-                                    service: widget.requestedService,
-                                    isAccepted: true,
-                                    onRefresh: () {
-                                      setState(() {
-                                        _isFetched = false;
-                                      });
-                                      didChangeDependencies();
-                                    },
-                                  ),
-                      ),
-                      SizedBoxedH16,
-                    ]
+                    serviceDetailsResponse!.response!.acceptedOffer == null
+                        ? TitleSections(
+                            title:
+                                'العروض ${serviceDetailsResponse!.response!.offers?.length ?? 0}',
+                            isViewAll: false,
+                            onTapView: () {})
+                        : TitleSections(
+                            title: 'العرض المقبول',
+                            isViewAll: false,
+                            onTapView: () {}),
+                    SizedBoxedH16,
+                    SizedBox(
+                      height: 160,
+                      child: serviceDetailsResponse!.response!.acceptedOffer ==
+                              null
+                          ? ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: serviceDetailsResponse!
+                                      .response!.offers?.length ??
+                                  0,
+                              itemBuilder: (ctx, index) {
+                                return ServiceOfferCard(
+                                  offer: serviceDetailsResponse!
+                                      .response!.offers![index],
+                                  service: widget.requestedService,
+                                  onRefresh: () {
+                                    setState(() {
+                                      _isFetched = false;
+                                    });
+                                    didChangeDependencies();
+                                  },
+                                );
+                              },
+                            )
+                          : ServiceOfferCard(
+                              offer: serviceDetailsResponse!
+                                  .response!.acceptedOffer!,
+                              service: widget.requestedService,
+                              isAccepted: true,
+                              onRefresh: () {
+                                setState(() {
+                                  _isFetched = false;
+                                });
+                                didChangeDependencies();
+                              },
+                            ),
+                    ),
+                    SizedBoxedH16,
                   ],
                 ),
     );
@@ -436,8 +431,8 @@ class _ServiceOfferCardState extends State<ServiceOfferCard> {
 
   @override
   Widget build(BuildContext context) {
-
-    return widget.offer.provider?.offer_count != 0
+    return widget.offer.provider?.offer_count != 0 ||
+            widget.offer.status == "ACCEPTED"
         ? SizedBox(
             width: MediaQuery.of(context).size.width * 0.9,
             height: 140,

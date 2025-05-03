@@ -64,6 +64,8 @@ class _MyRequestsScreenState extends State<MyRequestsScreen>
           channelName: 'service-status',
           onEvent: (event) async{
             await  _fetchData();
+            setState(() {
+            });
           });
 
       await pusher.connect();
@@ -87,7 +89,9 @@ class _MyRequestsScreenState extends State<MyRequestsScreen>
   void _handleTabSelection() {
     if (_tabController.indexIsChanging) {
       _fetchData();
-      setState(() {});
+      setState(() {
+
+      });
     }
   }
 
