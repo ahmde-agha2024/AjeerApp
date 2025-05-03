@@ -387,7 +387,7 @@ class _ServiceWorkingOnCardState extends State<ServiceWorkingOnCard> {
               errorWidget: (context, url, error) =>
                   const Icon(Icons.error, color: MyColors.MainBulma),
             ),
-            title: Text(widget.service.title!),
+            title: Text(widget.service.title!), 
             subtitle: Text('طلب رقم : #${widget.service.id!}'),
             trailing: statusStringShowingToUser=="" ?SizedBox():Card(
               color: MyColors.CardBackgroundNew,

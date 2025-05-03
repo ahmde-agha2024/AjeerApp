@@ -49,7 +49,7 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   String? _updatedServiceStatus;
   ResponseHandler<ServiceDetails>? serviceDetailsResponse;
   ResponseHandler<ServiceResponse>? customerServicesResponse;
-  final int offerCount = storage.read('offer_count') ?? 0;
+
 
   @override
   void initState() {
@@ -357,7 +357,7 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
                           SizedBoxedH16,
                         ],
                       ),
-                    if (offerCount != 0) ...[
+                    if (widget.requestedService.provider?.offer_count != 0) ...[
                       serviceDetailsResponse!.response!.acceptedOffer == null
                           ? TitleSections(
                               title:
@@ -437,7 +437,7 @@ class _ServiceOfferCardState extends State<ServiceOfferCard> {
   @override
   Widget build(BuildContext context) {
 
-    return widget.offer.provider!.offer_count != 0
+    return widget.offer.provider?.offer_count != 0
         ? SizedBox(
             width: MediaQuery.of(context).size.width * 0.9,
             height: 140,
