@@ -1,9 +1,12 @@
 import 'package:ajeer/constants/utils.dart';
 import 'package:ajeer/controllers/service_provider/provider_home_page_provider.dart';
+import 'package:ajeer/controllers/service_provider/provider_services_provider.dart';
 import 'package:ajeer/models/customer/home/home_model.dart' show CustomerHome;
 import 'package:ajeer/models/customer/service_model.dart';
 import 'package:ajeer/models/customer/service_provider_model.dart';
 import 'package:ajeer/models/provider/home/provider_home_model.dart';
+import 'package:ajeer/ui/screens/home_provider/packages_screen.dart'
+    show PackagesScreen;
 import 'package:ajeer/ui/widgets/common/error_widget.dart';
 import 'package:ajeer/ui/widgets/common/loader_widget.dart';
 import 'package:ajeer/ui/widgets/home/carousel_slider_home.dart'
@@ -40,6 +43,13 @@ class _HomeProviderScreenState extends State<HomeProviderScreen> {
   bool _isFetched = false;
   ResponseHandler<ProviderHomePage>? _providerHome;
   ResponseHandler<CustomerHome>? _customerHome;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _fetchProviderHomeData();
+  }
 
   @override
   void didChangeDependencies() {
@@ -411,15 +421,96 @@ class _LatestServiceCardState extends State<LatestServiceCard> {
                                 style: flatButtonPrimaryStyle,
                                 onPressed: widget.verified == 1
                                     ? () async {
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                RequestOfferProviderScreen(
-                                              serviceDetails:
-                                                  widget.serviceDetails,
+                                        final int offerCount =
+                                            storage.read('offer_count') ?? 0;
+                                        final int providerId =
+                                            storage.read('provider_id') ?? 0;
+                                        if (offerCount == 1) {
+                                          // Show confirmation dialog
+                                          final result =
+                                              await showDialog<String>(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return Directionality(
+                                                textDirection:
+                                                    TextDirection.rtl,
+                                                child: AlertDialog(
+                                                  title: Text(
+                                                      ' تنبيه  مشروع - ${widget.serviceDetails.title}'),
+                                                  content: Text(
+                                                      'تملك حالياً عرض واحد فقط. هل ترغب بالانسحاب من باقي التقديمات أم شراء عروض إضافية؟'),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop('withdraw');
+                                                      },
+                                                      child: Text(
+                                                          'انسحاب من باقي المشاريع'),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop('purchase');
+                                                      },
+                                                      child: Text(
+                                                          'شراء عروض إضافية'),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                          );
+
+                                          if (result == 'withdraw') {
+                                            // Delete pending offers
+                                            final response = await Provider.of<
+                                                        ProviderServicesProvider>(
+                                                    context,
+                                                    listen: false)
+                                                .deletePendingOffers(
+                                                    providerId);
+
+                                            if (response.status ==
+                                                ResponseStatus.success) {
+                                              Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      RequestOfferProviderScreen(
+                                                    serviceDetails:
+                                                        widget.serviceDetails,
+                                                  ),
+                                                ),
+                                              );
+                                            } else {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                  content: Text(response
+                                                          .errorMessage ??
+                                                      'حدث خطأ أثناء حذف العروض المعلقة'),
+                                                ),
+                                              );
+                                            }
+                                          } else if (result == 'purchase') {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    PackagesScreen(),
+                                              ),
+                                            );
+                                          }
+                                        } else {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  RequestOfferProviderScreen(
+                                                serviceDetails:
+                                                    widget.serviceDetails,
+                                              ),
                                             ),
-                                          ),
-                                        );
+                                          );
+                                        }
                                       }
                                     : null,
                                 child: Text(

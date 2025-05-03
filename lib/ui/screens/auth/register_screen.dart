@@ -186,6 +186,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 color: Color(0xffEEEEEE)
                             ),)), // TODO:: Translate this
                       );
+                      authProvider.isLoginScreen=true;
                       Navigator.of(context).pushAndRemoveUntil(
                           MaterialPageRoute(
                               builder: (context) =>
@@ -367,6 +368,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       color: Color(0xffEEEEEE)
                                   ),)), // TODO:: Translate this
                             );
+                            authProvider.isLoginScreen=true;
                             Navigator.of(context).pushAndRemoveUntil(
                                 MaterialPageRoute(
                                     builder: (context) =>
@@ -701,14 +703,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           const SizedBox(height: 16),
           //buildSelectedSubCategories(),
           //  const SizedBox(height: 16),
-          LabelText(text: 'City'.tr()),
+          LabelText(text: 'المدينة'),
           const SizedBox(height: 8),
           !_isCitiesFetched
               ? const Center(
             child: CircularProgressIndicator(),
           )
               : DropdownButtonFormField<int>(
-            decoration: buildInputDecoration(hintText: 'City'.tr()),
+            decoration: buildInputDecoration(hintText: 'المدينة'),
             items: cities!.response!
                 .map((e) =>
                 DropdownMenuItem<int>(

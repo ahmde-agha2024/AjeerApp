@@ -257,29 +257,29 @@ class _RequestDetailsProviderScreenState
                 ),
               ),
             ),
-            Visibility(
-              visible: currentStatus == 'done_Work',
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 100),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-                  decoration: BoxDecoration(
-                    color: MyColors.MainPrimary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    textAlign: TextAlign.center,
-                    "إكتمل العمل , تم الدفع",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            // Visibility(
+            //   visible: currentStatus == 'done_Work',
+            //   child: Padding(
+            //     padding: const EdgeInsets.symmetric(horizontal: 100),
+            //     child: Container(
+            //       padding:
+            //           const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+            //       decoration: BoxDecoration(
+            //         color: MyColors.MainPrimary,
+            //         borderRadius: BorderRadius.circular(8),
+            //       ),
+            //       child: const Text(
+            //         textAlign: TextAlign.center,
+            //         "إكتمل العمل , تم الدفع",
+            //         style: TextStyle(
+            //           fontSize: 14,
+            //           fontWeight: FontWeight.w500,
+            //           color: Colors.white,
+            //         ),
+            //       ),
+            //     ),
+            //   ),
+            // ),
             SizedBoxedH16,
             Divider(color: Colors.grey.withOpacity(0.1), thickness: 10),
             SizedBoxedH16,

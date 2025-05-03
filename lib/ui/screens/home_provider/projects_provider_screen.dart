@@ -248,7 +248,6 @@ class _ProviderServiceRequestCardState
                                 style: flatButtonPrimaryStyle,
                                 onPressed: verified == 1
                                     ? () async {
-
                                         if (offerCount == 1) {
                                           // Show confirmation dialog
                                           final result =
@@ -256,7 +255,8 @@ class _ProviderServiceRequestCardState
                                             context: context,
                                             builder: (BuildContext context) {
                                               return Directionality(
-                                                textDirection: TextDirection.rtl,
+                                                textDirection:
+                                                    TextDirection.rtl,
                                                 child: AlertDialog(
                                                   title: Text(
                                                       ' تنبيه  مشروع - ${widget.service.title}'),
@@ -286,12 +286,16 @@ class _ProviderServiceRequestCardState
                                           );
 
                                           if (result == 'withdraw') {
-
                                             // Delete pending offers
-                                            final response = await Provider.of<ProviderServicesProvider>(context, listen: false)
-                                                .deletePendingOffers(providerId);
+                                            final response = await Provider.of<
+                                                        ProviderServicesProvider>(
+                                                    context,
+                                                    listen: false)
+                                                .deletePendingOffers(
+                                                    providerId);
 
-                                            if (response.status == ResponseStatus.success) {
+                                            if (response.status ==
+                                                ResponseStatus.success) {
                                               Navigator.of(context).push(
                                                 MaterialPageRoute(
                                                   builder: (context) =>
@@ -302,9 +306,12 @@ class _ProviderServiceRequestCardState
                                                 ),
                                               );
                                             } else {
-                                              ScaffoldMessenger.of(context).showSnackBar(
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
                                                 SnackBar(
-                                                  content: Text(response.errorMessage ?? 'حدث خطأ أثناء حذف العروض المعلقة'),
+                                                  content: Text(response
+                                                          .errorMessage ??
+                                                      'حدث خطأ أثناء حذف العروض المعلقة'),
                                                 ),
                                               );
                                             }
@@ -316,14 +323,13 @@ class _ProviderServiceRequestCardState
                                               ),
                                             );
                                           }
-                                        }else{
+                                        } else {
                                           Navigator.of(context).push(
                                             MaterialPageRoute(
                                               builder: (context) =>
                                                   RequestOfferProviderScreen(
-                                                    serviceDetails:
-                                                    widget.service,
-                                                  ),
+                                                serviceDetails: widget.service,
+                                              ),
                                             ),
                                           );
                                         }

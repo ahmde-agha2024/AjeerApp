@@ -49,6 +49,7 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   String? _updatedServiceStatus;
   ResponseHandler<ServiceDetails>? serviceDetailsResponse;
   ResponseHandler<ServiceResponse>? customerServicesResponse;
+  final int offerCount = storage.read('offer_count') ?? 0;
 
   @override
   void initState() {
@@ -120,7 +121,7 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print(widget.requestedService.service_status);
+
     return Scaffold(
       appBar: AppbarTitle(title: 'طلب رقم #${widget.requestedService.id}'),
       backgroundColor: Colors.white,
@@ -356,54 +357,57 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
                           SizedBoxedH16,
                         ],
                       ),
-                    serviceDetailsResponse!.response!.acceptedOffer == null
-                        ? TitleSections(
-                            title:
-                                'العروض ${serviceDetailsResponse!.response!.offers?.length ?? 0}',
-                            isViewAll: false,
-                            onTapView: () {})
-                        : TitleSections(
-                            title: 'العرض المقبول',
-                            isViewAll: false,
-                            onTapView: () {}),
-                    SizedBoxedH16,
-                    SizedBox(
-                      height: 160,
-                      child: serviceDetailsResponse!.response!.acceptedOffer ==
-                              null
-                          ? ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: serviceDetailsResponse!
-                                      .response!.offers?.length ??
-                                  0,
-                              itemBuilder: (ctx, index) {
-                                return ServiceOfferCard(
-                                  offer: serviceDetailsResponse!
-                                      .response!.offers![index],
-                                  service: widget.requestedService,
-                                  onRefresh: () {
-                                    setState(() {
-                                      _isFetched = false;
-                                    });
-                                    didChangeDependencies();
-                                  },
-                                );
-                              },
-                            )
-                          : ServiceOfferCard(
-                              offer: serviceDetailsResponse!
-                                  .response!.acceptedOffer!,
-                              service: widget.requestedService,
-                              isAccepted: true,
-                              onRefresh: () {
-                                setState(() {
-                                  _isFetched = false;
-                                });
-                                didChangeDependencies();
-                              },
-                            ),
-                    ),
-                    SizedBoxedH16,
+                    if (offerCount != 0) ...[
+                      serviceDetailsResponse!.response!.acceptedOffer == null
+                          ? TitleSections(
+                              title:
+                                  'العروض ${serviceDetailsResponse!.response!.offers?.length ?? 0}',
+                              isViewAll: false,
+                              onTapView: () {})
+                          : TitleSections(
+                              title: 'العرض المقبول',
+                              isViewAll: false,
+                              onTapView: () {}),
+                      SizedBoxedH16,
+                      SizedBox(
+                        height: 160,
+                        child:
+                            serviceDetailsResponse!.response!.acceptedOffer ==
+                                    null
+                                ? ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: serviceDetailsResponse!
+                                            .response!.offers?.length ??
+                                        0,
+                                    itemBuilder: (ctx, index) {
+                                      return ServiceOfferCard(
+                                        offer: serviceDetailsResponse!
+                                            .response!.offers![index],
+                                        service: widget.requestedService,
+                                        onRefresh: () {
+                                          setState(() {
+                                            _isFetched = false;
+                                          });
+                                          didChangeDependencies();
+                                        },
+                                      );
+                                    },
+                                  )
+                                : ServiceOfferCard(
+                                    offer: serviceDetailsResponse!
+                                        .response!.acceptedOffer!,
+                                    service: widget.requestedService,
+                                    isAccepted: true,
+                                    onRefresh: () {
+                                      setState(() {
+                                        _isFetched = false;
+                                      });
+                                      didChangeDependencies();
+                                    },
+                                  ),
+                      ),
+                      SizedBoxedH16,
+                    ]
                   ],
                 ),
     );
@@ -432,261 +436,288 @@ class _ServiceOfferCardState extends State<ServiceOfferCard> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.9,
-      height: 140,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-        child: Card(
-          color: Colors.white,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width * 0.9,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 16, bottom: 16, right: 8),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.all(
-                      Radius.circular(16),
-                    ),
-                    child: CachedNetworkImage(
-                      imageUrl: widget.offer.provider?.image ?? '',
-                      height: 140,
-                      width: MediaQuery.of(context).size.width * 0.25,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 12),
-                    child: Wrap(
-                      // mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'عامل رقم ${widget.offer.provider?.id ?? '0000'}'
-                                  .tr(),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: MyColors.Darkest,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Card(
-                              color: MyColors.cardPriceBackgroundColor,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16)),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 6, horizontal: 12),
-                                child: Text(
-                                  '${widget.offer.price!} دينار',
-                                  style: const TextStyle(
-                                      fontSize: 12,
-                                      color: MyColors.MainPrimary),
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                        SizedBoxedH8,
-                        Row(
-                          children: [
-                            // Text(
-                            //   widget.offer.provider?.category?.title ??
-                            //       'عامل أجير',
-                            //   style: const TextStyle(
-                            //     fontSize: 12,
-                            //     color: MyColors.textColor,
-                            //   ),
-                            // ),
-                            Row(
-                              children: [
-                                SvgPicture.asset(
-                                    'assets/svg/request_calender.svg'),
-                                const SizedBox(width: 6),
-                                Text(
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: MyColors.textColor,
-                                  ),
-                                  'تاريخ الطلب ${widget.offer.date ?? 'غير محدد'}\nالساعة ${widget.offer.time ?? 'غير محدد'}',
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        SizedBoxedH16,
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: _isAccepting
-                                  ? const Center(
-                                      child: CircularProgressIndicator())
-                                  : SizedBox(
-                                      child: widget.isAccepted
-                                          ? TextButton(
-                                              style: flatButtonPrimaryStyle,
-                                              onPressed: () async {
-                                                Navigator.of(context).push(
-                                                    MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            SingleChatScreen(
-                                                              chatHead:
-                                                                  ChatHead(
-                                                                provider: widget
-                                                                    .offer
-                                                                    .provider,
-                                                              ),
-                                                              service: widget
-                                                                  .service,
-                                                            )));
-                                              },
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.center,
-                                                children: [
-                                                  Text(
-                                                    'محادثة'
-                                                        .tr(), // TODO TRANSLATE
-                                                    style: const TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        color: Colors.white),
-                                                  ),
-                                                ],
-                                              ),
-                                            )
-                                          : TextButton(
-                                              style: flatButtonPrimaryStyle,
-                                              onPressed: () async {
-                                                await StatusProviderController
-                                                    .changeStatus(
-                                                        widget.service.id
-                                                            .toString(),
-                                                        "NEW_OFFER");
-                                                setState(() {
-                                                  _isAccepting = true;
-                                                });
-                                                ResponseHandler
-                                                    handledResponse =
-                                                    await Provider.of<
-                                                                CustomerOrdersProvider>(
-                                                            context,
-                                                            listen: false)
-                                                        .acceptServiceOffer(
-                                                            widget.offer.id!);
-                                                if (handledResponse.status ==
-                                                    ResponseStatus.success) {
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                          'تم قبول العرض بنجاح'
-                                                              .tr()),
-                                                    ),
-                                                  );
 
-                                                  widget.onRefresh();
-                                                } else if (handledResponse
-                                                        .errorMessage !=
-                                                    null) {
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                          handledResponse
-                                                              .errorMessage!),
-                                                    ),
-                                                  );
-                                                } else {
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                          'حدث خطأ ما'.tr()),
-                                                    ),
-                                                  );
-                                                }
-                                                setState(() {
-                                                  _isAccepting = false;
-                                                });
-                                              },
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.center,
-                                                children: [
-                                                  Text(
-                                                    'قبول'.tr(),
-                                                    style: const TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        color: Colors.white),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
+    return widget.offer.provider!.offer_count != 0
+        ? SizedBox(
+            width: MediaQuery.of(context).size.width * 0.9,
+            height: 140,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: Card(
+                color: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.9,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            top: 16, bottom: 16, right: 8),
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(16),
+                          ),
+                          child: CachedNetworkImage(
+                            imageUrl: widget.offer.provider?.image ?? '',
+                            height: 140,
+                            width: MediaQuery.of(context).size.width * 0.25,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 12),
+                          child: Wrap(
+                            // mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'عامل رقم ${widget.offer.provider?.id ?? '0000'}'
+                                        .tr(),
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: MyColors.Darkest,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: SizedBox(
-                                child: TextButton(
-                                  style: flatButtonLightStyle,
-                                  onPressed: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            ProviderDetailsScreen(
-                                                providerId:
-                                                    widget.offer.provider?.id ??
-                                                        1),
-                                      ),
-                                    );
-                                  },
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        'عرض'.tr(),
+                                  ),
+                                  Card(
+                                    color: MyColors.cardPriceBackgroundColor,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(16)),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 6, horizontal: 12),
+                                      child: Text(
+                                        '${widget.offer.price!} دينار',
                                         style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.black),
+                                            fontSize: 12,
+                                            color: MyColors.MainPrimary),
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
+                              SizedBoxedH8,
+                              Row(
+                                children: [
+                                  // Text(
+                                  //   widget.offer.provider?.category?.title ??
+                                  //       'عامل أجير',
+                                  //   style: const TextStyle(
+                                  //     fontSize: 12,
+                                  //     color: MyColors.textColor,
+                                  //   ),
+                                  // ),
+                                  Row(
+                                    children: [
+                                      SvgPicture.asset(
+                                          'assets/svg/request_calender.svg'),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: MyColors.textColor,
+                                        ),
+                                        'تاريخ الطلب ${widget.offer.date ?? 'غير محدد'}\nالساعة ${widget.offer.time ?? 'غير محدد'}',
                                       ),
                                     ],
                                   ),
-                                ),
+                                ],
                               ),
-                            ),
-                          ],
+                              SizedBoxedH16,
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: _isAccepting
+                                        ? const Center(
+                                            child: CircularProgressIndicator())
+                                        : SizedBox(
+                                            child: widget.isAccepted
+                                                ? TextButton(
+                                                    style:
+                                                        flatButtonPrimaryStyle,
+                                                    onPressed: () async {
+                                                      Navigator.of(context).push(
+                                                          MaterialPageRoute(
+                                                              builder: (context) =>
+                                                                  SingleChatScreen(
+                                                                    chatHead:
+                                                                        ChatHead(
+                                                                      provider: widget
+                                                                          .offer
+                                                                          .provider,
+                                                                    ),
+                                                                    service: widget
+                                                                        .service,
+                                                                  )));
+                                                    },
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Text(
+                                                          'محادثة'
+                                                              .tr(), // TODO TRANSLATE
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize: 14,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                  color: Colors
+                                                                      .white),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  )
+                                                : TextButton(
+                                                    style:
+                                                        flatButtonPrimaryStyle,
+                                                    onPressed: () async {
+                                                      await StatusProviderController
+                                                          .changeStatus(
+                                                              widget.service.id
+                                                                  .toString(),
+                                                              "NEW_OFFER");
+                                                      setState(() {
+                                                        _isAccepting = true;
+                                                      });
+                                                      ResponseHandler
+                                                          handledResponse =
+                                                          await Provider.of<
+                                                                      CustomerOrdersProvider>(
+                                                                  context,
+                                                                  listen: false)
+                                                              .acceptServiceOffer(
+                                                                  widget.offer
+                                                                      .id!);
+                                                      if (handledResponse
+                                                              .status ==
+                                                          ResponseStatus
+                                                              .success) {
+                                                        ScaffoldMessenger.of(
+                                                                context)
+                                                            .showSnackBar(
+                                                          SnackBar(
+                                                            content: Text(
+                                                                'تم قبول العرض بنجاح'
+                                                                    .tr()),
+                                                          ),
+                                                        );
+
+                                                        widget.onRefresh();
+                                                      } else if (handledResponse
+                                                              .errorMessage !=
+                                                          null) {
+                                                        ScaffoldMessenger.of(
+                                                                context)
+                                                            .showSnackBar(
+                                                          SnackBar(
+                                                            content: Text(
+                                                                handledResponse
+                                                                    .errorMessage!),
+                                                          ),
+                                                        );
+                                                      } else {
+                                                        ScaffoldMessenger.of(
+                                                                context)
+                                                            .showSnackBar(
+                                                          SnackBar(
+                                                            content: Text(
+                                                                'حدث خطأ ما'
+                                                                    .tr()),
+                                                          ),
+                                                        );
+                                                      }
+                                                      setState(() {
+                                                        _isAccepting = false;
+                                                      });
+                                                    },
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Text(
+                                                          'قبول'.tr(),
+                                                          style:
+                                                              const TextStyle(
+                                                                  fontSize: 14,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                  color: Colors
+                                                                      .white),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                          ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: SizedBox(
+                                      child: TextButton(
+                                        style: flatButtonLightStyle,
+                                        onPressed: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ProviderDetailsScreen(
+                                                      providerId: widget.offer
+                                                              .provider?.id ??
+                                                          1),
+                                            ),
+                                          );
+                                        },
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              'عرض'.tr(),
+                                              style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Colors.black),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
+                      )
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
-    );
+          )
+        : SizedBox();
   }
 }

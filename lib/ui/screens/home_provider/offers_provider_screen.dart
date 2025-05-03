@@ -38,7 +38,7 @@ class _OffersProviderScreenState extends State<OffersProviderScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     connectPusher();
 
   }
@@ -163,9 +163,9 @@ class _OffersProviderScreenState extends State<OffersProviderScreen>
                           Tab(
                             text: 'عروض مقبولة',
                           ),
-                          Tab(
-                            text: 'عروض مرفوضة',
-                          ),
+                          // Tab(
+                          //   text: 'عروض مرفوضة',
+                          // ),
                         ],
                       ),
                     ),
@@ -220,29 +220,29 @@ class _OffersProviderScreenState extends State<OffersProviderScreen>
                               ),
                             ),
                           ),
-                          RefreshIndicator(
-                            onRefresh: _fetchOffers,
-                            child: providerOffers.response?.rejected!.length!=0 ?buildOffersList(
-                                providerOffers.response?.rejected ?? []): Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image.asset(
-                                      'assets/Icons/0ffersIcons.png',
-                                      height: 180,
-                                      width: 180),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'لا يوجد عروض مرفوضة !',
-                                    style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: MyColors.Darkest),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                          // RefreshIndicator(
+                          //   onRefresh: _fetchOffers,
+                          //   child: providerOffers.response?.rejected!.length!=0 ?buildOffersList(
+                          //       providerOffers.response?.rejected ?? []): Center(
+                          //     child: Column(
+                          //       mainAxisAlignment: MainAxisAlignment.center,
+                          //       children: [
+                          //         Image.asset(
+                          //             'assets/Icons/0ffersIcons.png',
+                          //             height: 180,
+                          //             width: 180),
+                          //         const SizedBox(height: 16),
+                          //         Text(
+                          //           'لا يوجد عروض مرفوضة !',
+                          //           style: const TextStyle(
+                          //               fontSize: 16,
+                          //               fontWeight: FontWeight.w600,
+                          //               color: MyColors.Darkest),
+                          //         ),
+                          //       ],
+                          //     ),
+                          //   ),
+                          // ),
                         ],
                       ),
                     ),

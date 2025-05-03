@@ -28,7 +28,7 @@ class SliderModel {
     image: json["image"],
     status: json["status"],
     categoryId: json["category_id"],
-    type: json["type"],
+    type: json["type"]??"provider",
     createdAt: DateTime.parse(json["created_at"]),
     updatedAt: DateTime.parse(json["updated_at"]),
   );
