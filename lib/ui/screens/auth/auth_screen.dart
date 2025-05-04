@@ -1,4 +1,5 @@
 import 'package:ajeer/controllers/common/auth_provider.dart';
+import 'package:ajeer/services/force_update_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -10,8 +11,21 @@ import '../../widgets/auth/header_text.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
 
-class AuthScreen extends StatelessWidget {
+class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
+
+  @override
+  State<AuthScreen> createState() => _AuthScreenState();
+}
+
+class _AuthScreenState extends State<AuthScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+  }
+
+
 
   @override
   Widget build(BuildContext context) {

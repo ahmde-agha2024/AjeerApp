@@ -358,7 +358,7 @@ class _RequestDetailsProviderScreenState
                             ),
                           ),
                         );
-                      },
+                    }  ,
                       child: CachedNetworkImage(
                         imageUrl: widget.loadedService.image!,
                         errorWidget: (context, url, error) => Icon(Icons.error),

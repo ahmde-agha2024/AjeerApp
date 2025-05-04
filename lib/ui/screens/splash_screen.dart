@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../controllers/general/review_pass_provider.dart';
+import '../../services/force_update_service.dart';
 import 'auth/on_boarding_screen.dart';
 import 'home_provider/tabs_provider_screen.dart';
 
@@ -47,6 +48,14 @@ class _SplashScreenState extends State<SplashScreen> {
     //_controller.dispose();
     super.dispose();
   }
+  Future<void> _checkForUpdate() async {
+    await ForceUpdateService.checkForUpdate();
+   // final needsUpdate =
+    // await ForceUpdateService.checkForUpdate();
+   // if (needsUpdate && mounted) {
+      ForceUpdateService.showUpdateDialog(context);
+  //  }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,23 +67,10 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  // Scaffold(
-  // backgroundColor: const Color(0xff1b1c17),
-  // body: _controller.value.isInitialized
-  // ? SizedBox.expand(
-  // child: FittedBox(
-  // fit: BoxFit.cover,
-  // child: SizedBox(
-  // width: _controller.value.size.width,
-  // height: _controller.value.size.height,
-  // child: VideoPlayer(_controller),
-  // ),
-  // ),
-  // )
-  //     : const Center(child: CircularProgressIndicator()),
-  // );
 
-  loadSplashScreen() {
+  loadSplashScreen() async{
+    // Check for updates first
+    await _checkForUpdate();
     Timer.periodic(const Duration(seconds: 1), (Timer timer) {
       timer.cancel();
       // check if user already seen onboarding screen
