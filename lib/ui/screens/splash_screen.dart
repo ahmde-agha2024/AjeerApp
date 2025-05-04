@@ -22,8 +22,8 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
- // late VideoPlayerController _controller;
-  double _opacity = 0.0;  // Start with zero opacity
+  // late VideoPlayerController _controller;
+  double _opacity = 0.0; // Start with zero opacity
 
   @override
   void initState() {
@@ -48,27 +48,30 @@ class _SplashScreenState extends State<SplashScreen> {
     //_controller.dispose();
     super.dispose();
   }
+
   Future<void> _checkForUpdate() async {
     await ForceUpdateService.checkForUpdate();
-   // final needsUpdate =
-    // await ForceUpdateService.checkForUpdate();
-   // if (needsUpdate && mounted) {
+    final needsUpdate = await ForceUpdateService.checkForUpdate();
+    if (needsUpdate && mounted) {
       ForceUpdateService.showUpdateDialog(context);
-  //  }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Scaffold( 
       backgroundColor: Colors.white,
       body: Center(
-        child: Image.asset('assets/Icons/logo.png',width: 294,height: 183,),
+        child: Image.asset(
+          'assets/Icons/logo.png',
+          width: 294,
+          height: 183,
+        ),
       ),
     );
   }
 
-
-  loadSplashScreen() async{
+  loadSplashScreen() async {
     // Check for updates first
     await _checkForUpdate();
     Timer.periodic(const Duration(seconds: 1), (Timer timer) {
