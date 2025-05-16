@@ -314,12 +314,15 @@ class CustomerHomeProvider with ChangeNotifier {
     return handledResponse;
   }
 
-  Future<ResponseHandler<List<ServiceProvider>>>
-      fetchAllServiceProviders() async {
+  Future<ResponseHandler<List<ServiceProvider>>> fetchAllServiceProviders({
+      required int pageNumber,
+      required int pageSize,}
+  ) async {
     ResponseHandler<List<ServiceProvider>> handledResponse =
         ResponseHandler(status: ResponseStatus.error);
 
-    String url = '${BaseURL.baseCustomerUrl}/providers';
+    print(pageNumber);
+    String url = '${BaseURL.baseCustomerUrl}/providers?page_number=$pageNumber&page_size=$pageSize';
     try {
       http.Response response = await http.get(
         Uri.parse(url),
@@ -356,11 +359,14 @@ class CustomerHomeProvider with ChangeNotifier {
     return handledResponse;
   }
 
-  Future<ResponseHandler<List<ServiceProvider>>> fetchAllTopSelling() async {
+  Future<ResponseHandler<List<ServiceProvider>>> fetchAllTopSelling({
+    required int pageNumber,
+    required int pageSize,
+  }) async {
     ResponseHandler<List<ServiceProvider>> handledResponse =
         ResponseHandler(status: ResponseStatus.error);
 
-    String url = '${BaseURL.baseCustomerUrl}/top_selling';
+    String url = '${BaseURL.baseCustomerUrl}/top_selling?page_number=$pageNumber&page_size=$pageSize';
     try {
       http.Response response = await http.get(
         Uri.parse(url),
@@ -383,14 +389,14 @@ class CustomerHomeProvider with ChangeNotifier {
       }
 
       logMessage(
-          location: 'fetchAllServiceProviders STATUS CODE',
+          location: 'fetchAllTopSelling STATUS CODE',
           message: response.statusCode);
       logMessage(
-          location: 'fetchAllServiceProviders RESPONSE',
+          location: 'fetchAllTopSelling RESPONSE',
           message: response.body);
     } catch (e, s) {
       logMessage(
-          location: 'ERROR ON fetchAllServiceProviders',
+          location: 'ERROR ON fetchAllTopSelling',
           message: e.toString(),
           stack: s.toString());
     }

@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:localize_and_translate/localize_and_translate.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 
 import '../../../constants/my_colors.dart';
 import '../../widgets/auth/appbar_auth.dart';
@@ -41,6 +42,42 @@ class _ResetPasswordScreenState extends State<VerifyCodePasswordScreen> {
   bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
   final _formKey = GlobalKey<FormState>();
+  int _resendTimer = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    startResendTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void startResendTimer() {
+    setState(() {
+      _resendTimer = 90;
+    });
+    _timer?.cancel();
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (_resendTimer > 0) {
+        setState(() {
+          _resendTimer--;
+        });
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  String get timerText {
+    int minutes = _resendTimer ~/ 60;
+    int seconds = _resendTimer % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +152,66 @@ class _ResetPasswordScreenState extends State<VerifyCodePasswordScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                       onCompleted: (pin) async {},
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  TextButton(
+                    onPressed: _resendTimer > 0
+                        ? null
+                        : () async {
+                      try {
+                        final response = await Provider.of<Auth>(context, listen: false)
+                            .sendOTPNew(phoneNumber: widget.phoneNumber);
+                        if (response.status == ResponseStatus.success) {
+                          startResendTimer();
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'تم إعادة إرسال رمز التحقق',
+                                style: TextStyle(color: Color(0xffEEEEEE)),
+                              ),
+                            ),
+                          );
+
+                        } else {
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: Color(0xffBF3131),
+                              content: Text(
+                                response.errorMessage ?? 'حدث خطأ أثناء إرسال رمز التحقق',
+                                style: TextStyle(color: Color(0xffEEEEEE)),
+                              ),
+                            ),
+                          );
+
+                        }
+                      } catch (e) {
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: Color(0xffBF3131),
+                            content: Text(
+                              'حدث خطأ أثناء إرسال رمز التحقق',
+                              style: TextStyle(color: Color(0xffEEEEEE)),
+                            ),
+                          ),
+                        );
+
+                      } finally {
+
+                      }
+                          },
+                    child: Text(
+                      _resendTimer > 0
+                          ? 'لم تستلم أي رمز؟ إعادة الإرسال $timerText'
+                          : 'لم تستلم أي رمز؟ إعادة الإرسال',
+                      style: TextStyle(
+                        color: _resendTimer > 0 ? Colors.grey : MyColors.MainBulma,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),

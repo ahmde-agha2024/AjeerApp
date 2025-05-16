@@ -17,6 +17,7 @@ import 'package:provider/provider.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
 
 import '../../../constants/get_storage.dart';
 import '../../../constants/my_colors.dart';
@@ -69,6 +70,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _showOTPFields = false;
   bool _showAllFields = false;
 
+  int _resendTimer = 90; // 1:30 in seconds
+  Timer? _timer;
+
   @override
   void didChangeDependencies() {
     if (!_isCategoriesFetched) {
@@ -120,127 +124,392 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: Column(
         children: [
           stepOneContent(),
+          SizedBox(
+            width: double.infinity,
+            height: 60,
+            child: TextButton(
+              style: flatButtonStyle,
+              onPressed: _isLoading
+                  ? null
+                  : () async {
+                if (_formKey.currentState!.validate()) {
+                  if (_passwordController.text != _confirmPasswordController.text) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      backgroundColor: Color(0xffBF3131),
+                      content: Text(
+                        "passwords_do_not_match".tr(),
+                        style: TextStyle(color: Color(0xffEEEEEE)),
+                      ),
+                    ));
+                    return;
+                  }
 
-            SizedBox(
-              width: double.infinity,
-              height: 60,
-              child: TextButton(
-                style: flatButtonStyle,
-                onPressed: _isLoading
-                    ? null
-                    : () async {
-                  await storage.write('seen_onboarding', 'true');
-                  if (_formKey.currentState!.validate()) {
-                    if (!_showAllFields) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          backgroundColor: Color(0xffBF3131),
-                          content: Text(
-                            'الرجاء التحقق من رقم الهاتف أولاً',
-                            style: TextStyle(color: Color(0xffEEEEEE)),
-                          ),
-                        ),
-                      );
-                      return;
-                    }
-                    if (_passwordController.text !=
-                        _confirmPasswordController.text) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  if (!_isAgree) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
                         backgroundColor: Color(0xffBF3131),
                         content: Text(
-                          "passwords_do_not_match".tr(), style: TextStyle(
-                            color: Color(0xffEEEEEE)
-                        ),),
-                      ));
-                      return;
-                    }
-                    if (!_isAgree) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            backgroundColor: Color(0xffBF3131),
-                            content: Text(
-                              "You must agree to the terms and conditions"
-                                  .tr(), style: TextStyle(
-                                color: Color(0xffEEEEEE)
-                            ),)),
-                      );
-                      return;
-                    }
-                    setState(() {
-                      _isLoading = true;
-                    });
-                    //Client
-                    ResponseHandler handledResponse =
-                    await authProvider.signUpAsCustomer(
-                        fullName: _nameController.text,
-                        phoneNumber: phoneController.text,
-                        password: _passwordController.text,
-                        passwordConfirmation:
-                        _confirmPasswordController.text,
-                        invite_link: _inviite_link.text);
-                    if (handledResponse.status == ResponseStatus.success) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content: Text("تم إنشاء الحساب بنجاح"
-                                .tr(), style: TextStyle(
-                                color: Color(0xffEEEEEE)
-                            ),)), // TODO:: Translate this
-                      );
-                      authProvider.isLoginScreen=true;
-                      Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(
-                              builder: (context) =>
-                              context.read<Auth>().isProvider
-                                   ? AuthScreen()
-                                  : AuthScreen()),
-                              (route) => false);
-                      //     context, phoneController.text.toString());
-                    } else if (handledResponse.errorMessage != null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            backgroundColor: Color(0xffBF3131),
-                            content:
-                            Text(handledResponse.errorMessage!.tr(),
-                              style: TextStyle(
-                                  color: Color(0xffEEEEEE)
-                              ),)),
+                          "You must agree to the terms and conditions".tr(),
+                          style: TextStyle(color: Color(0xffEEEEEE)),
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+
+                  setState(() {
+                    _isLoading = true;
+                  });
+
+                  try {
+                    final response = await Provider.of<Auth>(context, listen: false)
+                        .sendOTPNew(phoneNumber: phoneController.text);
+
+                    if (response.status == ResponseStatus.success) {
+                      await showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.white,
+                        builder: (BuildContext bottomSheetContext) {
+                          return _buildOTPBottomSheetContent(
+                            authProvider,
+                            bottomSheetContext,
+                            context,
+                            onOTPVerified: () async {
+                              setState(() {
+                                _isLoading = true;
+                              });
+                              ResponseHandler handledResponse = await authProvider.signUpAsCustomer(
+                                fullName: _nameController.text,
+                                phoneNumber: phoneController.text,
+                                password: _passwordController.text,
+                                passwordConfirmation: _confirmPasswordController.text,
+                                invite_link: _inviite_link.text,
+                              );
+                              setState(() {
+                                _isLoading = false;
+                              });
+                              if (handledResponse.status == ResponseStatus.success) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      "تم إنشاء الحساب بنجاح".tr(),
+                                      style: TextStyle(color: Color(0xffEEEEEE)),
+                                    ),
+                                  ),
+                                );
+                                authProvider.isLoginScreen = true;
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(
+                                    builder: (context) => context.read<Auth>().isProvider
+                                        ? AuthScreen()
+                                        : AuthScreen(),
+                                  ),
+                                  (route) => false,
+                                );
+                              } else if (handledResponse.errorMessage != null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: Color(0xffBF3131),
+                                    content: Text(
+                                      handledResponse.errorMessage!.tr(),
+                                      style: TextStyle(color: Color(0xffEEEEEE)),
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: Color(0xffBF3131),
+                                    content: Text(
+                                      'حاول مرة أخرى'.tr(),
+                                      style: TextStyle(color: Color(0xffEEEEEE)),
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                          );
+                        },
                       );
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                            backgroundColor: Color(0xffBF3131),
-                            content: Text('حاول مرة أخرى'
-                                .tr(), style: TextStyle(
-                                color: Color(0xffEEEEEE)
-                            ),)), // TODO:: Translate this
+                          backgroundColor: Color(0xffBF3131),
+                          content: Text(
+                            response.errorMessage ?? 'حدث خطأ أثناء إرسال رمز التحقق',
+                            style: TextStyle(color: Color(0xffEEEEEE)),
+                          ),
+                        ),
                       );
+                      setState(() {
+                        _isLoading = false;
+                      });
                     }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: Color(0xffBF3131),
+                        content: Text(
+                          'حدث خطأ أثناء إرسال رمز التحقق',
+                          style: TextStyle(color: Color(0xffEEEEEE)),
+                        ),
+                      ),
+                    );
                     setState(() {
                       _isLoading = false;
                     });
                   }
-                },
-                child: _isLoading
-                    ? const Center(
-                  child: SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                    ),
+                }
+              },
+              child: _isLoading
+                  ? const Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
                   ),
-                )
-                    : Text(
-                  'Create an account'.tr(),
-                  style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white),
+                ),
+              )
+                  : Text(
+                'إنشاء حساب',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
                 ),
               ),
             ),
-
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildOTPBottomSheetContent(Auth authProvider, BuildContext bottomSheetContext, BuildContext mainContext, {required Function() onOTPVerified}) {
+    int resendTimer = 90;
+    Timer? localTimer;
+    bool isActive = true;
+    String otp = "";
+    void startResendTimer(Function setModalState) {
+      setModalState(() {
+        resendTimer = 90;
+      });
+      localTimer?.cancel();
+      localTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+        if (!isActive) {
+          timer.cancel();
+          return;
+        }
+        setModalState(() {
+          if (resendTimer > 0) {
+            resendTimer--;
+          } else {
+            timer.cancel();
+          }
+        });
+      });
+    }
+    String timerText() {
+      int minutes = resendTimer ~/ 60;
+      int seconds = resendTimer % 60;
+      return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    }
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: StatefulBuilder(
+        builder: (context, setModalState) {
+          if (localTimer == null) {
+            startResendTimer(setModalState);
+          }
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/Icons/otp.png',
+                width: 100,
+                height: 100,
+              ),
+              SizedBox(height: 16),
+              Container(
+                width: 40,
+                height: 4,
+                margin: EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Text(
+                'تأكيد الحساب',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'من فضلك أدخل رمز التحقق المرسل إلى ${phoneController.text}',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+              SizedBox(height: 24),
+              Directionality(
+                textDirection: TextDirection.ltr,
+                child: PinCodeTextField(
+                  appContext: bottomSheetContext,
+                  length: 6,
+                  onChanged: (value) {
+                    otp = value;
+                  },
+                  onCompleted: (value) async {
+                    setState(() {
+                      _isLoading = true;
+                    });
+                    try {
+                      final response = await http.post(
+                        Uri.parse('https://dev.ajeer.cloud/customer/checkotp'),
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: jsonEncode({
+                          'phone': phoneController.text,
+                          'message': value,
+                        }),
+                      );
+
+                      if (response.statusCode == 200) {
+                        isActive = false;
+                        localTimer?.cancel();
+                        Navigator.pop(bottomSheetContext);
+                        await storage.write('seen_onboarding', 'true');
+                        onOTPVerified();
+                      } else {
+                        if (isActive) {
+                          ScaffoldMessenger.of(mainContext).showSnackBar(
+                            SnackBar(
+                              backgroundColor: Color(0xffBF3131),
+                              content: Text(
+                                'رمز التحقق غير صحيح',
+                                style: TextStyle(color: Color(0xffEEEEEE)),
+                              ),
+                            ),
+                          );
+                        }
+                      }
+                    } catch (e) {
+                      if (isActive) {
+                        ScaffoldMessenger.of(mainContext).showSnackBar(
+                          SnackBar(
+                            backgroundColor: Color(0xffBF3131),
+                            content: Text(
+                              'حدث خطأ أثناء عملية التحقق',
+                              style: TextStyle(color: Color(0xffEEEEEE)),
+                            ),
+                          ),
+                        );
+                      }
+                    } finally {
+                      if (isActive) {
+                        setState(() {
+                          _isLoading = false;
+                        });
+                      }
+                    }
+                  },
+                  pinTheme: PinTheme(
+                    selectedFillColor: Colors.white,
+                    inactiveFillColor: Colors.white,
+                    activeFillColor: Colors.white,
+                    activeColor: MyColors.MainBeerus,
+                    inactiveColor: MyColors.MainBeerus,
+                    shape: PinCodeFieldShape.box,
+                    borderRadius: BorderRadius.circular(16.0),
+                    fieldHeight: MediaQuery.of(bottomSheetContext).size.width / 7,
+                    fieldWidth: MediaQuery.of(bottomSheetContext).size.width / 7.6,
+                  ),
+                  cursorColor: Colors.black,
+                  keyboardType: TextInputType.number,
+                  textStyle: const TextStyle(
+                    fontSize: 18,
+                    color: MyColors.MainZeno,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              SizedBox(height: 24),
+              TextButton(
+                onPressed: resendTimer > 0
+                    ? null
+                    : () async {
+                        setModalState(() {
+                          // show loading if needed
+                        });
+                        try {
+                          final response = await Provider.of<Auth>(mainContext, listen: false)
+                              .sendOTPNew(phoneNumber: phoneController.text);
+                          if (response.status == ResponseStatus.success) {
+                            startResendTimer(setModalState);
+                            if (isActive) {
+                              ScaffoldMessenger.of(mainContext).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'تم إعادة إرسال رمز التحقق',
+                                    style: TextStyle(color: Color(0xffEEEEEE)),
+                                  ),
+                                ),
+                              );
+                            }
+                          } else {
+                            if (isActive) {
+                              ScaffoldMessenger.of(mainContext).showSnackBar(
+                                SnackBar(
+                                  backgroundColor: Color(0xffBF3131),
+                                  content: Text(
+                                    response.errorMessage ?? 'حدث خطأ أثناء إرسال رمز التحقق',
+                                    style: TextStyle(color: Color(0xffEEEEEE)),
+                                  ),
+                                ),
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          if (isActive) {
+                            ScaffoldMessenger.of(mainContext).showSnackBar(
+                              SnackBar(
+                                backgroundColor: Color(0xffBF3131),
+                                content: Text(
+                                  'حدث خطأ أثناء إرسال رمز التحقق',
+                                  style: TextStyle(color: Color(0xffEEEEEE)),
+                                ),
+                              ),
+                            );
+                          }
+                        } finally {
+                          if (isActive) {
+                            setModalState(() {
+                              // hide loading if needed
+                            });
+                          }
+                        }
+                      },
+                child: Text(
+                  resendTimer > 0
+                      ? 'لم تستلم أي رمز؟ إعادة الإرسال ${timerText()}'
+                      : 'لم تستلم أي رمز؟ إعادة الإرسال',
+                  style: TextStyle(
+                    color: resendTimer > 0 ? Colors.grey : MyColors.MainBulma,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -256,7 +525,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded( 
+              Expanded(
                 child: SizedBox(
                   height: 60,
                   width: double.infinity,
@@ -267,18 +536,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         : () async {
                       if (_formKey.currentState!.validate()) {
                         if (_currentStep == 0) {
-                          if (!_showAllFields) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                backgroundColor: Color(0xffBF3131),
-                                content: Text(
-                                  'الرجاء التحقق من رقم الهاتف أولاً',
-                                  style: TextStyle(color: Color(0xffEEEEEE)),
-                                ),
-                              ),
-                            );
-                            return;
-                          }
                           if (_passwordController.text !=
                               _confirmPasswordController.text) {
                             ScaffoldMessenger.of(context)
@@ -323,12 +580,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             );
                             return;
                           }
-                          if (selectedCategoryId == null) {
+                          if (selectedCategoryId == null || selectedCategoriesSubcategories.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                   backgroundColor: Color(0xffBF3131),
                                   content: Text(
-                                    "الرجاء إختيار التخصص", style: TextStyle(
+                                    " الرجاء إختيار التخصص والتخصص الفرعي", style: TextStyle(
                                       color: Color(0xffEEEEEE)
                                   ),)),
                             );
@@ -338,63 +595,108 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           setState(() {
                             _isLoading = true;
                           });
-                          ResponseHandler response =
-                          await authProvider.signUpAsProvider(
-                              fullName: _nameController.text,
-                              phoneNumber: phoneController.text,
-                              password: _passwordController.text,
-                              passwordConfirmation:
-                              _confirmPasswordController.text,
-                              about: _bioController.text,
-                              categoryId: selectedCategoryId!,
-                              cityId: selectedCityId!,
-                              passport: _passportController.text,
-                              //subCategoryIds: getSelectedSubCategoryIds(),
-                              idFront: imageDocuments['idFront']!,
-                              // idBack: imageDocuments['idBack']!,
-                              idSelfie: imageDocuments['idSelfie']!,
-                              invite_link: _inviite_link.text
-                            // image: imageDocuments['accountImage']!,
-                          );
-                          setState(() {
-                            _isLoading = false;
-                          });
-                          if (response.status == ResponseStatus.success) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-
-                                  content: Text("تم إنشاء الحساب بنجاح"
-                                      .tr(), style: TextStyle(
-                                      color: Color(0xffEEEEEE)
-                                  ),)), // TODO:: Translate this
-                            );
-                            authProvider.isLoginScreen=true;
-                            Navigator.of(context).pushAndRemoveUntil(
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                    context.read<Auth>().isProvider
-                                        ? AuthScreen()
-                                        : AuthScreen()),
-                                    (route) => false);
-                          } else if (response.errorMessage != null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  backgroundColor: Color(0xffBF3131),
-                                  content:
-                                  Text(response.errorMessage!.tr(),
-                                    style: TextStyle(
-                                        color: Color(0xffEEEEEE)
-                                    ),)),
-                            );
-                          } else {
+                          try {
+                            final response = await Provider.of<Auth>(context, listen: false)
+                                .sendOTPNew(phoneNumber: phoneController.text);
+                            if (response.status == ResponseStatus.success) {
+                              await showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.white,
+                                builder: (BuildContext bottomSheetContext) {
+                                  return _buildOTPBottomSheetContent(
+                                    authProvider,
+                                    bottomSheetContext,
+                                    context,
+                                    onOTPVerified: () async {
+                                      setState(() {
+                                        _isLoading = true;
+                                      });
+                                      ResponseHandler response =
+                                          await authProvider.signUpAsProvider(
+                                        fullName: _nameController.text,
+                                        phoneNumber: phoneController.text,
+                                        password: _passwordController.text,
+                                        passwordConfirmation:
+                                            _confirmPasswordController.text,
+                                        about: _bioController.text,
+                                        categoryId: selectedCategoryId!,
+                                        cityId: selectedCityId!,
+                                        subCategoryIds: getSelectedSubCategoryIds(),
+                                        passport: _passportController.text,
+                                        idFront: imageDocuments['idFront']!,
+                                        idSelfie: imageDocuments['idSelfie']!,
+                                        invite_link: _inviite_link.text,
+                                      );
+                                      setState(() {
+                                        _isLoading = false;
+                                      });
+                                      if (response.status == ResponseStatus.success) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              "تم إنشاء الحساب بنجاح".tr(),
+                                              style: TextStyle(color: Color(0xffEEEEEE)),
+                                            ),
+                                          ),
+                                        );
+                                        authProvider.isLoginScreen = true;
+                                        Navigator.of(context).pushAndRemoveUntil(
+                                          MaterialPageRoute(
+                                            builder: (context) => context.read<Auth>().isProvider
+                                                ? AuthScreen()
+                                                : AuthScreen(),
+                                          ),
+                                          (route) => false,
+                                        );
+                                      } else if (response.errorMessage != null) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            backgroundColor: Color(0xffBF3131),
+                                            content: Text(
+                                              response.errorMessage!.tr(),
+                                              style: TextStyle(color: Color(0xffEEEEEE)),
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            backgroundColor: Color(0xffBF3131),
+                                            content: Text(
+                                              'حاول مرة أخرى'.tr(),
+                                              style: TextStyle(color: Color(0xffEEEEEE)),
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  );
+                                },
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    backgroundColor: Color(0xffBF3131),
+                                    content: Text(
+                                      response.errorMessage ?? 'حدث خطأ أثناء إرسال رمز التحقق',
+                                      style: TextStyle(color: Color(0xffEEEEEE)),
+                                    )),
+                              );
+                            }
+                          } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                   backgroundColor: Color(0xffBF3131),
                                   content: Text(
-                                    "حاول مرة أخرى", style: TextStyle(
-                                      color: Color(0xffEEEEEE)
-                                  ),)), // TODO:: Translate this
+                                    'حدث خطأ أثناء إرسال رمز التحقق',
+                                    style: TextStyle(color: Color(0xffEEEEEE)),
+                                  )),
                             );
+                          } finally {
+                            setState(() {
+                              _isLoading = false;
+                            });
                           }
                         }
                       }
@@ -476,91 +778,129 @@ class _RegisterScreenState extends State<RegisterScreen> {
         const SizedBox(height: 16),
         LabelText(text: 'Phone Number'.tr()),
         const SizedBox(height: 8),
-        phoneNumber(),
-        if (_showAllFields) ...[
-          const SizedBox(height: 16),
-          LabelText(text: 'Password'.tr()),
-          const SizedBox(height: 8),
-          buildPasswordField(),
-          const SizedBox(height: 16),
-          LabelText(text: 'Password Confirmation'.tr()),
-          const SizedBox(height: 8),
-          buildConfirmPasswordField(),
-          const SizedBox(height: 16),
-          LabelText(text: 'رابط الدعوة ( إختياري )'.tr()),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: _inviite_link,
-            onTapOutside: (event) {
-              FocusManager.instance.primaryFocus?.unfocus();
-            },
-            decoration: InputDecoration(
-              fillColor: Colors.white,
-              filled: true,
-              enabledBorder: InputBorders.enabledBorder,
-              errorBorder: InputBorders.errorBorder,
-              focusedBorder: InputBorders.focusedBorder,
-              focusedErrorBorder: InputBorders.focusedErrorBorder,
-              hintText: 'رابط الدعوة'.tr(),
-              alignLabelWithHint: true,
-              hintStyle: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w300,
-                  color: MyColors.LightDark),
-            ),
+        TextFormField(
+          controller: phoneController,
+          decoration: InputDecoration(
+            fillColor: Colors.white,
+            filled: true,
+            enabledBorder: InputBorders.enabledBorder,
+            errorBorder: InputBorders.errorBorder,
+            focusedBorder: InputBorders.focusedBorder,
+            focusedErrorBorder: InputBorders.focusedErrorBorder,
+            hintText: 'ex: 09XXXXXXXX'.tr(),
+            alignLabelWithHint: true,
+            hintStyle: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w300,
+                color: MyColors.LightDark),
           ),
-          const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Checkbox(
-                value: _isAgree,
-                onChanged: (bool? value) {
-                  setState(() {
-                    _isAgree = value ?? false;
-                  });
-                },
-                activeColor: MyColors.MainBulma,
-              ),
-              Flexible(
-                child: RichText(
-                  text: TextSpan(
-                    text: 'By registering with us you agree to '.tr(),
-                    style: const TextStyle(color: MyColors.Darkest),
-                    children: [
-                      TextSpan(
-                        text: 'Terms and Conditions'.tr(),
-                        style: const TextStyle(
-                            color: MyColors.MainBulma,
-                            decoration: TextDecoration.underline),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) =>
-                                const TermsAndConditionsScreen()));
-                          },
-                      ),
-                      TextSpan(
-                          text: ' and '.tr(),
-                          style: const TextStyle(color: MyColors.Darkest)),
-                      TextSpan(
-                        text: 'privacy policy'.tr(),
-                        style: const TextStyle(
-                            color: MyColors.MainBulma,
-                            decoration: TextDecoration.underline),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => FaqScreen()));
-                          },
-                      ),
-                    ],
-                  ),
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'من فضلك أدخل رقم الهاتف';
+            }
+            if (value.length < 10) {
+              return 'رقم الهاتف يجب أن يكون 10 أرقام على الأقل';
+            }
+            if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+              return 'رقم الهاتف يجب أن يحتوي على أرقام فقط';
+            }
+            if (!value.startsWith('09')) {
+              return 'رقم الهاتف يجب أن يبدأ بـ 09';
+            }
+            return null;
+          },
+          keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(10)
+          ],
+          onTapOutside: (event) {
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+        ),
+        const SizedBox(height: 16),
+        LabelText(text: 'Password'.tr()),
+        const SizedBox(height: 8),
+        buildPasswordField(),
+        const SizedBox(height: 16),
+        LabelText(text: 'Password Confirmation'.tr()),
+        const SizedBox(height: 8),
+        buildConfirmPasswordField(),
+        const SizedBox(height: 16),
+        LabelText(text: 'رابط الدعوة ( إختياري )'.tr()),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _inviite_link,
+          onTapOutside: (event) {
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+          decoration: InputDecoration(
+            fillColor: Colors.white,
+            filled: true,
+            enabledBorder: InputBorders.enabledBorder,
+            errorBorder: InputBorders.errorBorder,
+            focusedBorder: InputBorders.focusedBorder,
+            focusedErrorBorder: InputBorders.focusedErrorBorder,
+            hintText: 'رابط الدعوة'.tr(),
+            alignLabelWithHint: true,
+            hintStyle: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w300,
+                color: MyColors.LightDark),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Checkbox(
+              value: _isAgree,
+              onChanged: (bool? value) {
+                setState(() {
+                  _isAgree = value ?? false;
+                });
+              },
+              activeColor: MyColors.MainBulma,
+            ),
+            Flexible(
+              child: RichText(
+                text: TextSpan(
+                  text: 'By registering with us you agree to '.tr(),
+                  style: const TextStyle(color: MyColors.Darkest),
+                  children: [
+                    TextSpan(
+                      text: 'Terms and Conditions'.tr(),
+                      style: const TextStyle(
+                          color: MyColors.MainBulma,
+                          decoration: TextDecoration.underline),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) =>
+                              const TermsAndConditionsScreen()));
+                        },
+                    ),
+                    TextSpan(
+                        text: ' and '.tr(),
+                        style: const TextStyle(color: MyColors.Darkest)),
+                    TextSpan(
+                      text: 'privacy policy'.tr(),
+                      style: const TextStyle(
+                          color: MyColors.MainBulma,
+                          decoration: TextDecoration.underline),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => FaqScreen()));
+                        },
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -576,11 +916,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
           TextFormField(
             controller: _bioController,
             decoration: buildInputDecoration(
-              hintText: 'مثال : فني متخصص بخبرة طويلة في المجال، أقدّم خدماتي بدقة واحترافية عالية، وأسعى دائمًا لرضا العميل وجودة العمل. جاهز لتنفيذ الأعمال المطلوبة في الوقت المحدد وبأسعار مناسبة. ثقتكم هي سر نجاحي.').copyWith(
-            counterText: '${_bioController.text.length}/80',
+                hintText: 'مثال : فني متخصص بخبرة طويلة في المجال، أقدّم خدماتي بدقة واحترافية عالية، وأسعى دائمًا لرضا العميل وجودة العمل. جاهز لتنفيذ الأعمال المطلوبة في الوقت المحدد وبأسعار مناسبة. ثقتكم هي سر نجاحي.').copyWith(
+              counterText: '${_bioController.text.length}/80',
               hintStyle: TextStyle(
-                fontSize: 12,
-                color: Colors.grey
+                  fontSize: 12,
+                  color: Colors.grey
               ),
               counterStyle: TextStyle(
                 color: _bioController.text.length < 80 ? Colors.red : Colors
@@ -642,63 +982,93 @@ class _RegisterScreenState extends State<RegisterScreen> {
             },
           ),
           const SizedBox(height: 8),
-          // LabelText(text: 'إضافة تخصص فرعي'.tr()),
-          // const SizedBox(height: 8),
+          LabelText(text: 'إضافة تخصص فرعي'.tr()),
+          const SizedBox(height: 8),
           if (selectedCategoryId != null && _isSubCategoriesFetched)
             subCategories!.status == ResponseStatus.success
-                ? // Horizontal ListView to display subcategories
-            Container(
-                height:
-                50, // Set height to control the size of the ListView
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal, // Horizontal scroll
-                  itemCount: subCategories!.response!.length,
-                  itemBuilder: (context, index) {
-                    final e = subCategories!.response![index];
-                    bool isSelected = selectedCategoriesSubcategories[
-                    selectedCategoryId] !=
-                        null &&
-                        selectedCategoriesSubcategories[selectedCategoryId]!
-                            .contains(e);
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            if (selectedCategoriesSubcategories[
-                            selectedCategoryId!] ==
-                                null) {
-                              selectedCategoriesSubcategories[
-                              selectedCategoryId!] = [e];
-                            } else {
-                              if (isSelected) {
-                                selectedCategoriesSubcategories[
-                                selectedCategoryId!]!
-                                    .remove(e);
-                              } else {
-                                selectedCategoriesSubcategories[
-                                selectedCategoryId!]!
-                                    .add(e);
-                              }
-                            }
-                          });
-                        },
-                        child: Chip(
-                          label: Text(e.title),
-                          backgroundColor: Colors.black26,
-                          // backgroundColor:
-                          //     isSelected ? Colors.green : Colors.blueAccent,
-                          labelStyle: TextStyle(color: Colors.white),
-                          deleteIcon: isSelected
-                              ? Icon(Icons.check, color: Colors.white)
-                              : null,
-                        ),
-                      ),
-                    );
-                  },
-                ))
+                ? DropdownButtonFormField<int>(
+              decoration: buildInputDecoration(hintText: 'التخصص الفرعي'.tr()),
+              items: subCategories!.response!.map((e) {
+                bool isSelected = selectedCategoriesSubcategories[selectedCategoryId!] != null && selectedCategoriesSubcategories[selectedCategoryId!]!.contains(e);
+                return DropdownMenuItem<int>(
+                  value: e.id,
+                  child: Container(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(e.title), // Display subcategory title
+                        if (isSelected) const Icon(Icons.check, color: Colors.green),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  if (selectedCategoriesSubcategories[selectedCategoryId!] == null) {
+                    selectedCategoriesSubcategories[selectedCategoryId!] = [subCategories!.response!.firstWhere((element) => element.id == value)];
+                  } else {
+                    selectedCategoriesSubcategories[selectedCategoryId!]!.add(subCategories!.response!.firstWhere((element) => element.id == value));
+                  }
+                });
+              },
+            )
                 : const Center(child: Text('Error fetching subcategories')),
+          // if (selectedCategoryId != null && _isSubCategoriesFetched)
+          //   subCategories!.status == ResponseStatus.success
+          //       ? // Horizontal ListView to display subcategories
+          //   Container(
+          //       height:
+          //       50, // Set height to control the size of the ListView
+          //       child: ListView.builder(
+          //         scrollDirection: Axis.horizontal, // Horizontal scroll
+          //         itemCount: subCategories!.response!.length,
+          //         itemBuilder: (context, index) {
+          //           final e = subCategories!.response![index];
+          //           bool isSelected = selectedCategoriesSubcategories[
+          //           selectedCategoryId] !=
+          //               null &&
+          //               selectedCategoriesSubcategories[selectedCategoryId]!
+          //                   .contains(e);
+          //
+          //           return Padding(
+          //             padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          //             child: GestureDetector(
+          //               onTap: () {
+          //                 setState(() {
+          //                   if (selectedCategoriesSubcategories[
+          //                   selectedCategoryId!] ==
+          //                       null) {
+          //                     selectedCategoriesSubcategories[
+          //                     selectedCategoryId!] = [e];
+          //                   } else {
+          //                     if (isSelected) {
+          //                       selectedCategoriesSubcategories[
+          //                       selectedCategoryId!]!
+          //                           .remove(e);
+          //                     } else {
+          //                       selectedCategoriesSubcategories[
+          //                       selectedCategoryId!]!
+          //                           .add(e);
+          //                     }
+          //                   }
+          //                 });
+          //               },
+          //               child: Chip(
+          //                 label: Text(e.title),
+          //                 backgroundColor: Colors.black26,
+          //                 // backgroundColor:
+          //                 //     isSelected ? Colors.green : Colors.blueAccent,
+          //                 labelStyle: TextStyle(color: Colors.white),
+          //                 deleteIcon: isSelected
+          //                     ? Icon(Icons.check, color: Colors.white)
+          //                     : null,
+          //               ),
+          //             ),
+          //           );
+          //         },
+          //       ))
+          //       : const Center(child: Text('Error fetching subcategories')),
 
           const SizedBox(height: 16),
           //buildSelectedSubCategories(),
@@ -801,8 +1171,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 color: MyColors.LightDark),
           ),
           style: TextStyle(
-              fontSize: 16, 
-              fontWeight: FontWeight.w400, 
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
               color: _showAllFields ? Colors.grey : MyColors.Darkest),
           keyboardType: TextInputType.number,
           inputFormatters: [
@@ -817,15 +1187,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
           },
         ),
         Visibility(
-          visible: !_showAllFields,
+            visible: !_showAllFields,
             child: const SizedBox(height: 16)),
 
         if (phoneController.text.isNotEmpty && phoneController.text.length >= 10 && !_showOTPFields && !_showAllFields)
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
-              onPressed: _showAllFields 
-                  ? null 
+              onPressed: _showAllFields
+                  ? null
                   : () async {
                 if (phoneController.text.isEmpty || phoneController.text.length < 10) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -848,47 +1218,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   final response = await Provider.of<Auth>(context, listen: false)
                       .sendOTPNew(phoneNumber: phoneController.text);
 
-                if (response.status == ResponseStatus.success) {
-                  setState(() {
-                    _showOTPFields = true;
-                  });
-                } else {
+                  if (response.status == ResponseStatus.success) {
+                    setState(() {
+                      _showOTPFields = true;
+                    });
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: Color(0xffBF3131),
+                        content: Text(
+                          response.errorMessage ?? 'حدث خطأ أثناء إرسال رمز التحقق',
+                          style: TextStyle(color: Color(0xffEEEEEE)),
+                        ),
+                      ),
+                    );
+                  }
+                } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       backgroundColor: Color(0xffBF3131),
                       content: Text(
-                        response.errorMessage ?? 'حدث خطأ أثناء إرسال رمز التحقق',
+                        'حدث خطأ أثناء إرسال رمز التحقق',
                         style: TextStyle(color: Color(0xffEEEEEE)),
                       ),
                     ),
                   );
+                } finally {
+                  setState(() {
+                    _isLoading = false;
+                  });
                 }
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: Color(0xffBF3131),
-                    content: Text(
-                      'حدث خطأ أثناء إرسال رمز التحقق',
-                      style: TextStyle(color: Color(0xffEEEEEE)),
-                    ),
-                  ),
-                );
-              } finally {
-                setState(() {
-                  _isLoading = false;
-                });
-              }
-            },
-            child: Text(
-              'تحقق من رقم الهاتف',
-              style: TextStyle(
-                color: _showAllFields ? Colors.grey : MyColors.MainBulma,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+              },
+              child: Text(
+                'تحقق من رقم الهاتف',
+                style: TextStyle(
+                  color: _showAllFields ? Colors.grey : MyColors.MainBulma,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ),
-        ),
         if (_showOTPFields) ...[
           const SizedBox(height: 16),
           Directionality(
@@ -971,6 +1341,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ],
     );
   }
+  Widget buildSelectedSubCategories() {
+    List<Widget> selectedSubCategories = [];
+
+    selectedCategoriesSubcategories.forEach((categoryId, subCategories) {
+      for (var subCategory in subCategories) {
+        selectedSubCategories.add(
+          Padding(
+            padding: const EdgeInsets.all(3.0),
+            child: Chip(
+              label: Text(subCategory.title),
+              deleteIcon: const Icon(Icons.cancel),
+              onDeleted: () {
+                setState(() {
+                  selectedCategoriesSubcategories[categoryId]!.remove(subCategory);
+                  if (selectedCategoriesSubcategories[categoryId]!.isEmpty) {
+                    selectedCategoriesSubcategories.remove(categoryId);
+                  }
+                });
+              },
+            ),
+          ),
+        );
+      }
+    });
+
+    return selectedSubCategories.isNotEmpty
+        ? Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        LabelText(text: 'التخصصات الفرعية المٌختارة'.tr()),
+        const SizedBox(height: 8),
+        Container(
+          height: 50, // Set a fixed height for the horizontal list
+          child: ListView(
+            scrollDirection: Axis.horizontal, // Enable horizontal scrolling
+            children: selectedSubCategories,
+          ),
+        ),
+      ],
+    )
+        : const Center(child: Text('لم يتم اختيار أي تخصصات فرعية'));
+  }
+
+  // Function to extract subcategory IDs
+  List<int> getSelectedSubCategoryIds() {
+    List<int> selectedSubCategoryIds = [];
+    selectedCategoriesSubcategories.forEach((categoryId, subCategories) {
+      selectedSubCategoryIds.addAll(subCategories.map((subCategory) => subCategory.id));
+    });
+    return selectedSubCategoryIds;
+  }
+
 
   Widget buildPassportField() {
     return TextFormField(
@@ -1021,15 +1443,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (value.length < 8) {
           return 'كلمة المرور يجب أن تكون 8 خانات على الأقل';
         }
-        if (!RegExp(r'[A-Z]').hasMatch(value)) {
+      /*  if (!RegExp(r'[A-Z]').hasMatch(value)) {
           return 'يجب أن تحتوي كلمة المرور على أحرف كبيرة';
-        }
-        if (!RegExp(r'[a-z]').hasMatch(value)) {
-          return 'يجب أن تحتوي كلمة المرور على أحرف صغيرة';
-        }
-        if (!RegExp(r'[0-9]').hasMatch(value)) {
-          return 'يجب أن تحتوي كلمة المرور على رقم';
-        }
+        }*/
+        // if (!RegExp(r'[a-z]').hasMatch(value)) {
+        //   return 'يجب أن تحتوي كلمة المرور على أحرف صغيرة';
+        // }
+        // if (!RegExp(r'[0-9]').hasMatch(value)) {
+        //   return 'يجب أن تحتوي كلمة المرور على رقم';
+        // }
         // if (!RegExp(r'[!@#\$&*~]').hasMatch(value)) {
         //   return 'password_must_contain_special_character'.tr();
         // }
@@ -1168,13 +1590,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-// Function to extract subcategory IDs
-// List<int> getSelectedSubCategoryIds() {
-//   List<int> selectedSubCategoryIds = [];
-//   selectedCategoriesSubcategories.forEach((categoryId, subCategories) {
-//     selectedSubCategoryIds
-//         .addAll(subCategories.map((subCategory) => subCategory.id));
-//   });
-//   return selectedSubCategoryIds;
-// }
+  void startResendTimer() {
+    setState(() {
+      _resendTimer = 90; // 1:30 in seconds
+    });
+    _timer?.cancel();
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_resendTimer > 0) {
+          _resendTimer--;
+        } else {
+          timer.cancel();
+        }
+      });
+    });
+  }
 }

@@ -352,7 +352,7 @@ print(response.statusCode);
       // required File idBack,
       required File idSelfie,
       required int categoryId,
-      //required List<int> subCategoryIds,
+      required List<int> subCategoryIds,
       required String about,
       required String invite_link,
       // required File image,
@@ -376,8 +376,8 @@ print(response.statusCode);
         'passport': passport,
         'invite_token': invite_link,
         'city_id': cityId.toString(),
-        // for (int i = 0; i < subCategoryIds.length; i++)
-        //   'subcategory[$i]': subCategoryIds[i].toString(),
+        for (int i = 0; i < subCategoryIds.length; i++)
+          'subcategory[$i]': subCategoryIds[i].toString(),
       });
       // add files
       request.files.add(http.MultipartFile.fromBytes(

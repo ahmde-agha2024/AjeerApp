@@ -17,17 +17,58 @@ class AllProvidersScreen extends StatefulWidget {
 
 class _AllProvidersScreenState extends State<AllProvidersScreen> {
   bool _isDataFetched = false;
+  bool _isLoadingMore = false;
+  int _currentPage = 1;
+  final int _pageSize = 10;
+  List<ServiceProvider> _allServiceProviders = [];
   ResponseHandler<List<ServiceProvider>>? _serviceProviders;
 
   @override
   void didChangeDependencies() {
-    Provider.of<CustomerHomeProvider>(context, listen: false).fetchAllServiceProviders().then((value) {
-      _serviceProviders = value;
-      setState(() {
-        _isDataFetched = true;
-      });
-    });
+    _fetchData();
     super.didChangeDependencies();
+  }
+
+  Future<void> _fetchData({bool isLoadMore = false}) async {
+    if (!isLoadMore) {
+      setState(() {
+        _isDataFetched = false;
+        _currentPage = 1;
+        _allServiceProviders = [];
+      });
+    }
+
+    final response = await Provider.of<CustomerHomeProvider>(context, listen: false)
+        .fetchAllServiceProviders(pageNumber: _currentPage, pageSize: _pageSize);
+
+    if (response.status == ResponseStatus.success) {
+      setState(() {
+        if (isLoadMore) {
+          _allServiceProviders.addAll(response.response!);
+        } else {
+          _allServiceProviders = response.response!;
+        }
+        _serviceProviders = response;
+        _isDataFetched = true;
+        _isLoadingMore = false;
+      });
+    } else {
+      setState(() {
+        _serviceProviders = response;
+        _isDataFetched = true;
+        _isLoadingMore = false;
+    });
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (!_isLoadingMore && _serviceProviders?.status == ResponseStatus.success) {
+      setState(() {
+        _isLoadingMore = true;
+        _currentPage++;
+      });
+      await _fetchData(isLoadMore: true);
+    }
   }
 
   @override
@@ -36,7 +77,7 @@ class _AllProvidersScreenState extends State<AllProvidersScreen> {
       body: Column(
         children: [
           AppbarTitle(
-            title: 'Service Providers'.tr(), // TODO TRANSLATE
+            title: 'Service Providers'.tr(),
           ),
           !_isDataFetched
               ? loaderWidget(context)
@@ -54,20 +95,17 @@ class _AllProvidersScreenState extends State<AllProvidersScreen> {
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                                 child: Text(
-                                  'Try Again'.tr(), // TODO TRANSLATE
+                                  'Try Again'.tr(),
                                   style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
                                 ),
                               ),
                               onPressed: () {
-                                setState(() {
-                                  _isDataFetched = false;
-                                  didChangeDependencies();
-                                });
+                                _fetchData();
                               }),
                         )
                       ],
                     )
-                  : Expanded(child: _buildListView(_serviceProviders!.response!)),
+                  : Expanded(child: _buildListView(_allServiceProviders)),
         ],
       ),
     );
@@ -77,9 +115,27 @@ class _AllProvidersScreenState extends State<AllProvidersScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: ListView.builder(
-        itemCount: serviceProviders.length,
+        itemCount: serviceProviders.length + (_isLoadingMore ? 1 : 0),
         shrinkWrap: true,
         itemBuilder: (ctx, index) {
+          if (index == serviceProviders.length) {
+            return Container(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(MyColors.MainBulma),
+                  strokeWidth: 3,
+                ),
+              ),
+            );
+          }
+
+          if (index == serviceProviders.length - 1 && !_isLoadingMore) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _loadMore();
+            });
+          }
+
           return ProviderProfileCard(serviceProvider: serviceProviders[index]);
         },
       ),
