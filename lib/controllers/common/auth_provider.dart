@@ -184,6 +184,7 @@ print(response.statusCode);
         body: 'phone=$phoneNumber&otp=$otp',
       );
 
+
       if (response.statusCode == 200) {
         handledResponse.status = ResponseStatus.success;
         _accessToken = jsonDecode(response.body)['access_token'];
@@ -274,6 +275,7 @@ print(response.statusCode);
             'phone=$phoneNumber&password=$password&password_confirmation=$confirmPassword&otp=$otp',
       );
 
+print(response.statusCode);
       if (response.statusCode == 200) {
         handledResponse.status = ResponseStatus.success;
       } else if (response.statusCode == 422 &&

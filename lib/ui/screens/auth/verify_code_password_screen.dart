@@ -161,7 +161,7 @@ class _ResetPasswordScreenState extends State<VerifyCodePasswordScreen> {
                         : () async {
                       try {
                         final response = await Provider.of<Auth>(context, listen: false)
-                            .sendOTPNew(phoneNumber: widget.phoneNumber);
+                            .sendOTP(phoneNumber: widget.phoneNumber);
                         if (response.status == ResponseStatus.success) {
                           startResendTimer();
 
@@ -287,6 +287,9 @@ class _ResetPasswordScreenState extends State<VerifyCodePasswordScreen> {
                                   );
                                 }
                               } else {
+                                setState(() {
+
+                                });
                                 ResponseHandler response =
                                     await Provider.of<Auth>(context,
                                             listen: false)
