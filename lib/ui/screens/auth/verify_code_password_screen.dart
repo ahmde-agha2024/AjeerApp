@@ -19,6 +19,7 @@ import '../../widgets/input_label.dart';
 class VerifyCodePasswordScreen extends StatefulWidget {
   bool isRegisterScreen;
   final String phoneNumber;
+
   VerifyCodePasswordScreen({
     required this.phoneNumber,
     super.key,
@@ -106,10 +107,7 @@ class _ResetPasswordScreenState extends State<VerifyCodePasswordScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    "من فضلك أدخل رمز التحقق المرسل إلى "
-
-                        +
-                        widget.phoneNumber,
+                    "من فضلك أدخل رمز التحقق المرسل إلى " + widget.phoneNumber,
                     style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w400,
@@ -159,56 +157,54 @@ class _ResetPasswordScreenState extends State<VerifyCodePasswordScreen> {
                     onPressed: _resendTimer > 0
                         ? null
                         : () async {
-                      try {
-                        final response = await Provider.of<Auth>(context, listen: false)
-                            .sendOTP(phoneNumber: widget.phoneNumber);
-                        if (response.status == ResponseStatus.success) {
-                          startResendTimer();
+                            try {
+                              final response = await Provider.of<Auth>(context,
+                                      listen: false)
+                                  .sendOTP(phoneNumber: widget.phoneNumber);
+                              if (response.status == ResponseStatus.success) {
+                                startResendTimer();
 
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'تم إعادة إرسال رمز التحقق',
-                                style: TextStyle(color: Color(0xffEEEEEE)),
-                              ),
-                            ),
-                          );
-
-                        } else {
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: Color(0xffBF3131),
-                              content: Text(
-                                response.errorMessage ?? 'حدث خطأ أثناء إرسال رمز التحقق',
-                                style: TextStyle(color: Color(0xffEEEEEE)),
-                              ),
-                            ),
-                          );
-
-                        }
-                      } catch (e) {
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            backgroundColor: Color(0xffBF3131),
-                            content: Text(
-                              'حدث خطأ أثناء إرسال رمز التحقق',
-                              style: TextStyle(color: Color(0xffEEEEEE)),
-                            ),
-                          ),
-                        );
-
-                      } finally {
-
-                      }
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'تم إعادة إرسال رمز التحقق',
+                                      style:
+                                          TextStyle(color: Color(0xffEEEEEE)),
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: Color(0xffBF3131),
+                                    content: Text(
+                                      response.errorMessage ??
+                                          'حدث خطأ أثناء إرسال رمز التحقق',
+                                      style:
+                                          TextStyle(color: Color(0xffEEEEEE)),
+                                    ),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  backgroundColor: Color(0xffBF3131),
+                                  content: Text(
+                                    'حدث خطأ أثناء إرسال رمز التحقق',
+                                    style: TextStyle(color: Color(0xffEEEEEE)),
+                                  ),
+                                ),
+                              );
+                            } finally {}
                           },
                     child: Text(
                       _resendTimer > 0
                           ? 'لم تستلم أي رمز؟ إعادة الإرسال $timerText'
                           : 'لم تستلم أي رمز؟ إعادة الإرسال',
                       style: TextStyle(
-                        color: _resendTimer > 0 ? Colors.grey : MyColors.MainBulma,
+                        color:
+                            _resendTimer > 0 ? Colors.grey : MyColors.MainBulma,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -264,8 +260,7 @@ class _ResetPasswordScreenState extends State<VerifyCodePasswordScreen> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                         content: Text(
-                                            'Account Has Been Verified Successfully'
-                                                .tr())),
+                                            'تم التحقق من الحساب بنجاح')),
                                   );
                                   Navigator.of(context).pushAndRemoveUntil(
                                       MaterialPageRoute(
@@ -283,13 +278,11 @@ class _ResetPasswordScreenState extends State<VerifyCodePasswordScreen> {
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                        content: Text('Error Occurred'.tr())),
+                                        content: Text('حدث خطأ ما ')),
                                   );
                                 }
                               } else {
-                                setState(() {
-
-                                });
+                                setState(() {});
                                 ResponseHandler response =
                                     await Provider.of<Auth>(context,
                                             listen: false)
@@ -307,8 +300,7 @@ class _ResetPasswordScreenState extends State<VerifyCodePasswordScreen> {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                         content: Text(
-                                            'Password has been reset successfully'
-                                                .tr())),
+                                            'تم إعادة تعيين كلمة المرور بنجاح')),
                                   );
                                   Navigator.of(context).pushAndRemoveUntil(
                                       MaterialPageRoute(
@@ -324,7 +316,7 @@ class _ResetPasswordScreenState extends State<VerifyCodePasswordScreen> {
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                        content: Text('Error Occurred'.tr())),
+                                        content: Text('حدث خطأ ما ')),
                                   );
                                 }
                               }

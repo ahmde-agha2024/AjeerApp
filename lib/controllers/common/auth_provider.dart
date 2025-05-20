@@ -357,7 +357,7 @@ print(response.statusCode);
       required List<int> subCategoryIds,
       required String about,
       required String invite_link,
-      // required File image,
+   required File image,
       required int cityId,
       required String passport}) async {
     ResponseHandler handledResponse =
@@ -391,9 +391,9 @@ print(response.statusCode);
       request.files.add(http.MultipartFile.fromBytes(
           'id[selfie]', await idSelfie.readAsBytes(),
           filename: idSelfie.path.split('/').last));
-      // request.files.add(http.MultipartFile.fromBytes(
-      //     'image', await image.readAsBytes(),
-      //     filename: image.path.split('/').last));
+      request.files.add(http.MultipartFile.fromBytes(
+          'image', await image.readAsBytes(),
+          filename: image.path.split('/').last));
 
       http.StreamedResponse response = await request.send();
       print(response.statusCode);
