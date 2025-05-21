@@ -621,12 +621,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   await showDialog(
                                     context: context,
                                     barrierDismissible: false,
-
                                     builder: (BuildContext dialogContext) {
                                       return BackdropFilter(
-                                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                        filter: ImageFilter.blur(
+                                            sigmaX: 10, sigmaY: 10),
                                         child: Dialog(
-                                        
                                           backgroundColor: Colors.white,
                                           shape: RoundedRectangleBorder(
                                               borderRadius:
@@ -639,7 +638,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                             child: Stack(
                                               children: [
                                                 Column(
-                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
                                                   children: [
                                                     SizedBox(height: 40),
                                                     Text(
@@ -648,18 +648,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                         fontSize: 20,
                                                         fontWeight:
                                                             FontWeight.bold,
-                                                        color: Color(0xff636363),
+                                                        color:
+                                                            Color(0xff636363),
                                                       ),
-                                                      textAlign: TextAlign.center,
+                                                      textAlign:
+                                                          TextAlign.center,
                                                     ),
                                                     SizedBox(height: 12),
                                                     Text(
                                                       'يرجى رفع صورة شخصية واضحة ومناسبة \nستظهر في ملفك الشخصي وتخضع لمراجعة فريق الدعم',
                                                       style: TextStyle(
                                                         fontSize: 13,
-                                                        color: Color(0xffBDBDBD),
+                                                        color:
+                                                            Color(0xffBDBDBD),
                                                       ),
-                                                      textAlign: TextAlign.center,
+                                                      textAlign:
+                                                          TextAlign.center,
                                                     ),
                                                     SizedBox(height: 32),
                                                     Center(
@@ -685,15 +689,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                                         .white,
                                                                     shape: BoxShape
                                                                         .circle,
-                                                                    border: Border
-                                                                        .all(
+                                                                    border:
+                                                                        Border
+                                                                            .all(
                                                                       color: Color(
                                                                           0xffE4572E),
                                                                       width: 4,
                                                                     ),
                                                                   ),
-                                                                  child:
-                                                                      Image.asset(
+                                                                  child: Image
+                                                                      .asset(
                                                                     'assets/Icons/profiledialog.png',
                                                                     color: Color(
                                                                         0xffE4572E),
@@ -702,8 +707,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                                   ),
                                                                 )
                                                               : ClipOval(
-                                                                  child:
-                                                                      Image.file(
+                                                                  child: Image
+                                                                      .file(
                                                                     imageDocuments[
                                                                         'additionalImage']!,
                                                                     width: 160,
@@ -723,7 +728,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                           ? 'لم تقم برفع صورة بعد'
                                                           : 'تم رفع الصورة',
                                                       style: TextStyle(
-                                                        color: Color(0xff636363),
+                                                        color:
+                                                            Color(0xff636363),
                                                         fontSize: 14,
                                                       ),
                                                     ),
@@ -731,16 +737,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                     Row(
                                                       children: [
                                                         Expanded(
-                                                          child:
-                                                              OutlinedButton.icon(
-                                                            style: OutlinedButton
-                                                                .styleFrom(
+                                                          child: OutlinedButton
+                                                              .icon(
+                                                            style:
+                                                                OutlinedButton
+                                                                    .styleFrom(
                                                               side: BorderSide(
                                                                   color: Color(
                                                                       0xffBDBDBD),
                                                                   width: 2),
                                                               minimumSize: Size(
-                                                                  double.infinity,
+                                                                  double
+                                                                      .infinity,
                                                                   54),
                                                               shape:
                                                                   RoundedRectangleBorder(
@@ -751,7 +759,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                               ),
                                                             ),
                                                             iconAlignment:
-                                                                IconAlignment.end,
+                                                                IconAlignment
+                                                                    .end,
                                                             icon: Image.asset(
                                                               'assets/Icons/solar_camera-bold.png',
                                                               color: Color(
@@ -770,7 +779,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                                 fontSize: 12,
                                                               ),
                                                             ),
-                                                            onPressed: () async {
+                                                            onPressed:
+                                                                () async {
                                                               await pickImage(
                                                                   'additionalImage',
                                                                   fromCamera:
@@ -783,15 +793,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                         ),
                                                         SizedBox(width: 12),
                                                         Expanded(
-                                                          child:
-                                                              ElevatedButton.icon(
-                                                            style: ElevatedButton
-                                                                .styleFrom(
+                                                          child: ElevatedButton
+                                                              .icon(
+                                                            style:
+                                                                ElevatedButton
+                                                                    .styleFrom(
                                                               backgroundColor:
                                                                   Color(
                                                                       0xffE04836),
                                                               minimumSize: Size(
-                                                                  double.infinity,
+                                                                  double
+                                                                      .infinity,
                                                                   54),
                                                               shape:
                                                                   RoundedRectangleBorder(
@@ -802,10 +814,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                               ),
                                                             ),
                                                             iconAlignment:
-                                                                IconAlignment.end,
+                                                                IconAlignment
+                                                                    .end,
                                                             icon: Image.asset(
                                                               'assets/Icons/tabler_folder-up.png',
-                                                              color: Colors.white,
+                                                              color:
+                                                                  Colors.white,
                                                               width: 22,
                                                               height: 22,
                                                             ),
@@ -814,15 +828,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                                   TextAlign.end,
                                                               'رفع صورة من الجهاز',
                                                               style: TextStyle(
-                                                                color:
-                                                                    Colors.white,
+                                                                color: Colors
+                                                                    .white,
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .w700,
                                                                 fontSize: 12,
                                                               ),
                                                             ),
-                                                            onPressed: () async {
+                                                            onPressed:
+                                                                () async {
                                                               await pickImage(
                                                                   'additionalImage');
                                                               (dialogContext
@@ -837,12 +852,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                     Text(
                                                       ': شروط الصورة',
                                                       style: TextStyle(
-                                                        color: Color(0xff959595),
+                                                        color:
+                                                            Color(0xff959595),
                                                         fontWeight:
                                                             FontWeight.w800,
                                                         fontSize: 12,
                                                       ),
-                                                      textAlign: TextAlign.center,
+                                                      textAlign:
+                                                          TextAlign.center,
                                                     ),
                                                     SizedBox(height: 4),
                                                     Column(
@@ -860,40 +877,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                     ),
                                                     SizedBox(height: 16),
                                                     TextButton.icon(
-                                                      onPressed: () {
-                                                        if (imageDocuments[
-                                                                    'idFront'] ==
-                                                                null ||
-                                                            imageDocuments[
-                                                                    'idSelfie'] ==
-                                                                null) {
-                                                          ScaffoldMessenger.of(
-                                                                  context)
-                                                              .showSnackBar(
-                                                            SnackBar(
-                                                              backgroundColor:
-                                                                  Color(
-                                                                      0xffBF3131),
-                                                              content: Text(
-                                                                'الرجاء تحميل جميع الصور المطلوبة',
-                                                                style: TextStyle(
-                                                                    color: Color(
-                                                                        0xffEEEEEE)),
-                                                              ),
-                                                            ),
-                                                          );
-                                                          return;
-                                                        }
-                                                        Navigator.of(
-                                                                dialogContext)
-                                                            .pop();
-                                                        // Continue with OTP verification
-                                                        _sendOTPAndShowBottomSheet(
-                                                            authProvider);
-                                                      },
-                                                      icon:  Image.asset(
+                                                      onPressed: imageDocuments[
+                                                                  'additionalImage'] !=
+                                                              null
+                                                          ? () {
+                                                              // if (imageDocuments['additionalImage']==null) {
+                                                              //   ScaffoldMessenger.of(
+                                                              //           context)
+                                                              //       .showSnackBar(
+                                                              //     SnackBar(
+                                                              //       backgroundColor:
+                                                              //           Color(
+                                                              //               0xffBF3131),
+                                                              //       content: Text(
+                                                              //         'يجب رفع صورة شخصية قبل الخروج',
+                                                              //         style: TextStyle(
+                                                              //             color: Color(
+                                                              //                 0xffEEEEEE)),
+                                                              //       ),
+                                                              //     ),
+                                                              //   );
+                                                              //   return;
+                                                              // }
+                                                              Navigator.of(
+                                                                      dialogContext)
+                                                                  .pop();
+                                                              // Continue with OTP verification
+                                                              _sendOTPAndShowBottomSheet(
+                                                                  authProvider);
+                                                            }
+                                                          : null,
+                                                      icon: Image.asset(
                                                         'assets/Icons/arrow.png',
-                                                        color: Color(0xffB1B1B1),
+                                                        color:
+                                                            Color(0xffB1B1B1),
                                                         width: 14,
                                                         height: 14,
                                                       ),
@@ -921,13 +938,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                       width: 30,
                                                       height: 30,
                                                     ),
-                                                    onPressed: () {
-                                                      Navigator.of(dialogContext)
-                                                          .pop();
-                                                      setState(() {
-                                                        _isLoading = false;
-                                                      });
-                                                    },
+                                                    onPressed: imageDocuments[
+                                                                'additionalImage'] !=
+                                                            null
+                                                        ? () {
+                                                            Navigator.of(
+                                                                    dialogContext)
+                                                                .pop();
+                                                            setState(() {
+                                                              _isLoading =
+                                                                  false;
+                                                            });
+                                                          }
+                                                        : null,
                                                   ),
                                                 ),
                                               ],
