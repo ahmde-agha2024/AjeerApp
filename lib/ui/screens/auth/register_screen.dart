@@ -909,16 +909,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                           : null,
                                                       icon: Image.asset(
                                                         'assets/Icons/arrow.png',
-                                                        color:
-                                                            Color(0xffB1B1B1),
+                                                        color:imageDocuments[
+                                                        'additionalImage'] !=
+                                                            null?
+                                                        Color(0xffE04836) : Color(0xffB1B1B1),
                                                         width: 14,
                                                         height: 14,
                                                       ),
                                                       label: Text(
                                                         'استمرار',
                                                         style: TextStyle(
-                                                          color:
-                                                              Color(0xffB1B1B1),
+                                                          color:imageDocuments[
+                                                          'additionalImage'] !=
+                                                              null?
+                                                          Color(0xffE04836) : Color(0xffB1B1B1),
                                                           fontWeight:
                                                               FontWeight.w400,
                                                           fontSize: 16,
@@ -938,10 +942,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                       width: 30,
                                                       height: 30,
                                                     ),
-                                                    onPressed: imageDocuments[
-                                                                'additionalImage'] !=
-                                                            null
-                                                        ? () {
+                                                    onPressed:  () {
                                                             Navigator.of(
                                                                     dialogContext)
                                                                 .pop();
@@ -950,7 +951,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                                   false;
                                                             });
                                                           }
-                                                        : null,
+                                                        ,
                                                   ),
                                                 ),
                                               ],
