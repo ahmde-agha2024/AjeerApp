@@ -147,10 +147,10 @@ class _RequestOfferProviderScreenState
                                       listen: false)
                                   .createOfferForServiceRequest(
                             serviceId: widget.serviceDetails.id!,
-                            price: double.parse(_amountController.text),
-                            content: _contentMessageController.text,
-                                date: _offerDateController.text,
-                                time: DateFormat('HH:mm').parse(_offerTimeController.text),
+                            // price: double.parse(_amountController.text),
+                            // content: _contentMessageController.text,
+                            //     date: _offerDateController.text,
+                            //     time: DateFormat('HH:mm').parse(_offerTimeController.text),
                           );
 
                           if (response.status == ResponseStatus.success) {

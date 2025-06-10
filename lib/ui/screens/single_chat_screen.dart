@@ -13,9 +13,11 @@ import 'package:intl/intl.dart';
 import 'package:localize_and_translate/localize_and_translate.dart';
 import 'package:provider/provider.dart';
 
+import '../../models/common/chatModelNew.dart';
+
 class SingleChatScreen extends StatefulWidget {
   ChatHead? chatHead;
-  Service? service;
+    Service? service;
 
   SingleChatScreen({super.key, this.chatHead, this.service});
 
@@ -25,9 +27,10 @@ class SingleChatScreen extends StatefulWidget {
 
 class _SingleChatScreenState extends State<SingleChatScreen> {
   bool _isDataFetched = false;
-  ResponseHandler<SingleChat>? _singleChatResponse =
+  ResponseHandler<SingleChatNew>? _singleChatResponse =
       ResponseHandler(status: ResponseStatus.error);
   bool amIProvider = false;
+  late bool isClient;
   bool _isSendingMessage = false;
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -37,6 +40,8 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
   @override
   void initState() {
     amIProvider = context.read<Auth>().isProvider;
+    isClient = Provider.of<Auth>(context, listen: false).isClient;
+
     super.initState();
     _refreshTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (!isFirstTime) {
@@ -150,19 +155,20 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
                           : ListView.builder(
                               controller: _scrollController,
                               itemCount: _singleChatResponse!
-                                  .response!.messages!.length,
+                                  .response?.messages?.length,
                               physics: const BouncingScrollPhysics(),
                               shrinkWrap: true,
                               itemBuilder: (context, index) {
                                 final message = _singleChatResponse!
-                                    .response!.messages![index];
+                                    .response?.messages?[index];
                                 final isProviderSender =
-                                    message.sender == 'provider';
+                                    message?.sender == 'provider';
                                 final isSentMessage =
                                     (amIProvider && isProviderSender) ||
                                         (!amIProvider && !isProviderSender);
                                 final formattedTime = DateFormat('hh:mm a')
-                                    .format(message.createdAt!.add(const Duration(hours: 2)));
+                                    .format(message!.createdAt!
+                                        .add(const Duration(hours: 2)));
                                 return isSentMessage
                                     ? _buildSentMessage(
                                         message: message.message!,
@@ -215,7 +221,6 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
                         : 'غير نشط الان')),
                 style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
-
             ],
           ),
         ],
@@ -371,26 +376,50 @@ class _SingleChatScreenState extends State<SingleChatScreen> {
                       _messageController.clear();
                       _isSendingMessage = true;
                     });
+                    if (!isClient) {
 
-                    ResponseHandler response =
-                        await Provider.of<Chat>(context, listen: false)
-                            .sendChatMessage(
-                                serviceId: widget.chatHead!.service?.id ??
-                                    widget.service!.id!,
-                                message: message);
+                      ResponseHandler response =
+                          await Provider.of<Chat>(context, listen: false)
+                              .sendChatMessage(
+                                  cid: widget.chatHead!.customer!.id.toString(),
+                                  serviceId: widget.chatHead!.service?.id ,
+                                  message: message);
 
-                    if (response.status == ResponseStatus.success) {
-                      await _refreshChat();
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        _scrollToBottom();
-                      });
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Error Occurred')),
-                      );
-                      setState(() {
-                        _messageController.text = message;
-                      });
+                      if (response.status == ResponseStatus.success) {
+                        await _refreshChat();
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          _scrollToBottom();
+                        });
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Error Occurred')),
+                        );
+                        setState(() {
+                          _messageController.text = message;
+                        });
+                      }
+                    } else{
+                      ResponseHandler response =
+                      await Provider.of<Chat>(context, listen: false)
+                          .sendChatMessage(
+                          cid: widget.chatHead!.provider!.id.toString(),
+                          // serviceId: widget.chatHead!.service?.id ??
+                          //     widget.service!.id!,
+                          message: message);
+
+                      if (response.status == ResponseStatus.success) {
+                        await _refreshChat();
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          _scrollToBottom();
+                        });
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Error Occurred')),
+                        );
+                        setState(() {
+                          _messageController.text = message;
+                        });
+                      }
                     }
 
                     setState(() {

@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:localize_and_translate/localize_and_translate.dart';
 import 'package:provider/provider.dart';
 
+import '../../widgets/home/provider_profile_card_all.dart';
+
 class AllProvidersScreen extends StatefulWidget {
   @override
   State<AllProvidersScreen> createState() => _AllProvidersScreenState();
@@ -136,7 +138,7 @@ class _AllProvidersScreenState extends State<AllProvidersScreen> {
             });
           }
 
-          return ProviderProfileCard(serviceProvider: serviceProviders[index]);
+          return ProviderProfileCardAll(serviceProvider: serviceProviders[index]);
         },
       ),
     );

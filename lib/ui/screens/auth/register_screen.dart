@@ -5,6 +5,7 @@ import 'package:ajeer/controllers/common/auth_provider.dart';
 import 'package:ajeer/controllers/general/on_boarding_provider.dart';
 import 'package:ajeer/models/common/category_model.dart';
 import 'package:ajeer/models/customer/provider/service_provider_account.dart';
+import 'package:ajeer/ui/screens/auth/freedaysscreen.dart';
 import 'package:ajeer/ui/screens/auth/login_screen.dart';
 import 'package:ajeer/ui/screens/auth/verify_code_password_screen.dart';
 import 'package:flutter/gestures.dart';
@@ -1872,12 +1873,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   authProvider.isLoginScreen = true;
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
-                      builder: (context) => context.read<Auth>().isProvider
-                          ? AuthScreen()
-                          : AuthScreen(),
+                      builder: (context) => FreeDaysScreen()
                     ),
                     (route) => false,
                   );
+                  // Navigator.of(context).pushAndRemoveUntil(
+                  //   MaterialPageRoute(
+                  //     builder: (context) => context.read<Auth>().isProvider
+                  //         ? AuthScreen()
+                  //         : AuthScreen(),
+                  //   ),
+                  //   (route) => false,
+                  // );
                 } else if (response.errorMessage != null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

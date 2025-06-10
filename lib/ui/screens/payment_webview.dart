@@ -32,6 +32,7 @@ class _SubscriptionPaymentScreenState extends State<SubscriptionPaymentScreen> {
           onHttpError: (HttpResponseError error) {},
           onWebResourceError: (WebResourceError error) {},
           onNavigationRequest: (NavigationRequest request) {
+            print(request.url);
             print('NavigationRequest: ${request.url}');
             if (request.url.contains('order/result/')) {
               // pop all until ProviderHomeScreen

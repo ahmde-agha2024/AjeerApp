@@ -10,9 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:localize_and_translate/localize_and_translate.dart';
 import 'package:provider/provider.dart';
 
-class TopSellingScreen extends StatefulWidget {
-  const TopSellingScreen({super.key});
+import '../../widgets/home/provider_profile_card_all.dart';
 
+class TopSellingScreen extends StatefulWidget {
   @override
   State<TopSellingScreen> createState() => _TopSellingScreenState();
 }
@@ -41,7 +41,7 @@ class _TopSellingScreenState extends State<TopSellingScreen> {
     }
 
     final response = await Provider.of<CustomerHomeProvider>(context, listen: false)
-        .fetchAllTopSelling(pageNumber: _currentPage, pageSize: _pageSize);
+        .fetchAllServiceProviders(pageNumber: _currentPage, pageSize: _pageSize);
 
     if (response.status == ResponseStatus.success) {
       setState(() {
@@ -59,7 +59,7 @@ class _TopSellingScreenState extends State<TopSellingScreen> {
         _serviceProviders = response;
         _isDataFetched = true;
         _isLoadingMore = false;
-    });
+      });
     }
   }
 
@@ -79,40 +79,35 @@ class _TopSellingScreenState extends State<TopSellingScreen> {
       body: Column(
         children: [
           AppbarTitle(
-            title: "الأكثر طلبا"
+            title: 'Service Providers'.tr(),
           ),
           !_isDataFetched
               ? loaderWidget(context)
               : _serviceProviders!.status == ResponseStatus.error
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        errorWidget(context),
-                        Builder(
-                          builder: (context) => MaterialButton(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              color: MyColors.MainBulma,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 16, horizontal: 12),
-                                child: Text(
-                                  'Try Again'.tr(),
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600),
-                                ),
-                              ),
-                              onPressed: () {
-                                _fetchData();
-                              }),
-                        )
-                      ],
-                    )
-                  : Expanded(
-                      child: _buildListView(_allServiceProviders)),
+              ? Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              errorWidget(context),
+              Builder(
+                builder: (context) => MaterialButton(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    color: MyColors.MainBulma,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                      child: Text(
+                        'Try Again'.tr(),
+                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    onPressed: () {
+                      _fetchData();
+                    }),
+              )
+            ],
+          )
+              : Expanded(child: _buildListView(_allServiceProviders)),
         ],
       ),
     );
@@ -136,14 +131,14 @@ class _TopSellingScreenState extends State<TopSellingScreen> {
               ),
             );
           }
-          
+
           if (index == serviceProviders.length - 1 && !_isLoadingMore) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               _loadMore();
             });
           }
-          
-          return ProviderProfileCard(serviceProvider: serviceProviders[index]);
+
+          return ProviderProfileCardAll(serviceProvider: serviceProviders[index]);
         },
       ),
     );

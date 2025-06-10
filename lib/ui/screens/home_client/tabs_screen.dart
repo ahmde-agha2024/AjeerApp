@@ -1,5 +1,6 @@
 import 'package:ajeer/constants/my_colors.dart';
 import 'package:ajeer/ui/screens/home_client/location_user_screen.dart';
+import 'package:ajeer/ui/screens/home_client/projectsforUser.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -43,7 +44,7 @@ class _TabsScreenState extends State<TabsScreen> with WidgetsBindingObserver {
   final List iconList = [
     'assets/svg/tab_home.svg',
     'assets/svg/tab_orders.svg',
-    'assets/svg/address_office.svg',
+    'assets/svg/myprojects.svg',
     'assets/svg/tab_profile.svg',
   ];
 
@@ -52,7 +53,7 @@ class _TabsScreenState extends State<TabsScreen> with WidgetsBindingObserver {
   final List<String> labelList = [
     'Home'.tr(),
     'My requests'.tr(),
-    'العناوين'.tr(),
+    'المشاريع'.tr(),
     'Profile'.tr(),
   ];
 
@@ -60,7 +61,7 @@ class _TabsScreenState extends State<TabsScreen> with WidgetsBindingObserver {
     const HomeScreen(),
     MyRequestsScreen(),
     // FavouriteScreen(),
-    UserAddressesScreen(),
+    ProjectsForUserScreen(),
     MoreScreen(),
   ];
 

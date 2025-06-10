@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:ajeer/constants/domain.dart';
 import 'package:ajeer/constants/utils.dart';
 import 'package:ajeer/models/provider/home/provider_home_model.dart';
@@ -44,5 +46,28 @@ class ProviderHomePageProvider with ChangeNotifier {
       logMessage(location: 'ERROR ON fetchProviderHomePage', message: e.toString(), stack: s.toString());
     }
     return handledResponse;
+  }
+
+  Future<bool> checkSubscriptionStatus() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://dev.ajeer.cloud/provider/new-packages-current-subscription'),
+        headers: {
+          'Accept': 'application/json',
+          'authorization': 'Bearer $_accessToken',
+        },
+      );
+      print('response.body');
+      print(response.body);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print(data["success"]);
+        return data["success"] == true;
+      }
+      return false;
+    } catch (e) {
+      print('Error checking subscription: $e');
+      return false;
+    }
   }
 }

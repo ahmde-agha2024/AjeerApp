@@ -41,7 +41,7 @@ class WalletController {
   }
 
   static Future<bool> chargeCopunForDiscount(String coupon) async {
-    String url = '${BaseURL.baseServiceProviderUrl}/add-coupon';
+    String url = '${BaseURL.baseServiceProviderUrl}/new-packages/apply-coupon';
     var providerId = storage.read("id_provider");
     final Map<String, dynamic> body = {
       'coupon': coupon,
@@ -78,7 +78,7 @@ print(response.statusCode);
 
 
   static Future<bool> BuyWithWallet({required int packageId}) async {
-    String url = '${BaseURL.baseServiceProviderUrl}/buy-with-wallet';
+    String url = '${BaseURL.baseServiceProviderUrl}/new-packages/subscribe';
     var providerId = storage.read("id_provider");
     final Map<String, dynamic> body = {
       'package_id': packageId,

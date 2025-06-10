@@ -339,7 +339,7 @@ class _PackagesScreenState extends State<PackagesScreen> {
                                         }
                                         if (response.status ==
                                             ResponseStatus.success) {
-
+print(response.response!);
                                           Navigator.of(context).push(
                                               MaterialPageRoute(
                                                   builder: (context) =>
@@ -449,6 +449,7 @@ class _PackagesScreenState extends State<PackagesScreen> {
                                                   content: Text(
                                                       'Error Occurred'.tr())));
                                         }
+
                                       },
                                 child: const Text(
                                   'الإشتراك عن طريق المحفظة',

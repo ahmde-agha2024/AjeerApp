@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:ajeer/constants/utils.dart';
 import 'package:ajeer/controllers/common/address_provider.dart';
@@ -307,6 +308,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                             onChanged: (value) {
                               setState(() {
                                 selectedAddressId = value;
+
                               });
                             },
                           ),
@@ -483,6 +485,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                                 setState(() {
                                   isAddingService = true;
                                 });
+                                print(selectedAddressId);
                                 ResponseHandler handledResponse = await Provider
                                         .of<CustomerOrdersProvider>(context,
                                             listen: false)
@@ -498,6 +501,7 @@ class _ServiceRequestScreenState extends State<ServiceRequestScreen> {
                                         time: _offerTimeController.text,
                                         subCategoryId: selectedSubCategoryId!,
                                         addressId: selectedAddressId!,
+
                                         serviceImages: serviceImages,
                                         provider_id: widget.provider_id != null
                                             ? widget.provider_id

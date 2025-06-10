@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:ajeer/NewDesign/plans.dart';
 import 'package:ajeer/controllers/general/review_pass_provider.dart';
 import 'package:ajeer/controllers/general/wallet_provider_controller.dart';
 import 'package:ajeer/ui/screens/auth/auth_screen.dart';
 import 'package:ajeer/ui/screens/home_provider/AjeerCardDistrubutions.dart';
+import 'package:ajeer/ui/screens/home_provider/subscribeScreen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -128,6 +130,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                     builder: (context) => EditProfileScreen()));
                               },
                             ),
+
+                            buildMenuItem(
+                              icon: Icons.wallet_membership,
+                              label: 'اشتراكاتي',
+                              onTap: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                    builder: (context) => SubScribeScreen()));
+                              },
+                            ),
                             // if (!Provider.of<ReviewPass>(context, listen: false)
                             //     .isAppleReview)
                             FutureBuilder(
@@ -144,7 +155,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
                                         Navigator.of(context).push(
                                             MaterialPageRoute(
                                                 builder: (context) =>
-                                                    PackagesScreen()));
+                                                    PlansScreen()));
+                                        // Navigator.of(context).push(
+                                        //     MaterialPageRoute(
+                                        //         builder: (context) =>
+                                        //             PackagesScreen()));
                                       },
                                     );
                                   } else {

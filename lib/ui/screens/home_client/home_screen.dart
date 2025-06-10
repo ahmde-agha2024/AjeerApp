@@ -35,8 +35,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _refreshData() async {
     final fetchedData =
-        await Provider.of<CustomerHomeProvider>(context, listen: false)
-            .fetchCustomerHomePage();
+    await Provider.of<CustomerHomeProvider>(context, listen: false)
+        .fetchCustomerHomePage();
     if (fetchedData.response != null) {
       _customerHome = fetchedData;
     }
@@ -88,124 +88,126 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: !_isFetched
                         ? loaderWidget(context, type: "customer_home")
                         : _customerHome!.status == ResponseStatus.success
-                            ? RefreshIndicator(
-                                onRefresh: _refreshData, // السحب للتحديث
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    children: [
-                                      // Filter sliders by type
-                                      if (_customerHome!.response!.sliders !=
-                                          null) ...[
-                                        // Show sliders with type "main"
-                                        if (_customerHome!.response!.sliders!
-                                            .any((slider) =>
-                                                slider.type == "customer"))
-                                          CarouselSliderHome(
-                                            slides: _customerHome!
-                                                .response!.sliders
-                                                .where((slider) =>
-                                                    slider.type == "customer")
-                                                .toList(),
-                                            catergoryTitle: _customerHome!
-                                                .response!.categories,
-                                          ),
-                                      ],
-                                      SizedBoxedH16,
-                                      TitleSections(
-                                        title: 'Categories',
-                                        isViewAll: true,
-                                        onTapView: () {
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      AllCategoriesScreen()));
-                                        },
-                                      ),
-                                      SizedBoxedH16,
-                                      CategoryListView(
-                                          categories: _customerHome!
-                                              .response!.categories),
-                                      SizedBoxedH16,
-                                      TitleSections(
-                                        title: 'Most requested',
-                                        isViewAll: true,
-                                        onTapView: () {
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      TopSellingScreen()));
-                                        },
-                                      ),
-                                      SizedBoxedH8,
-                                      MostRequestedListView(
-                                          mostRequested: _customerHome!
-                                              .response!.topSelling),
-                                      SizedBoxedH16,
-                                      TitleSections(
-                                        title: 'Service Providers',
-                                        isViewAll: true,
-                                        onTapView: () {
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      AllProvidersScreen()));
-                                        },
-                                      ),
-                                      SizedBoxedH8,
-                                      ProvidersListViewHome(
-                                          serviceProviders: _customerHome!
-                                              .response!
-                                              .randomServiceProviders),
-                                      SizedBoxedH24,
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Text(
-                                          'Dear user, before contacting the technicians through the app, we would like to remind you of the importance of contracting within the app and avoiding any dealings with technicians outside it. This ensures your rights as a user and allows you to benefit from the advantages provided by the app.'
-                                              .tr(),
-                                          style: const TextStyle(
-                                            color: MyColors.Darkest,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                      SizedBoxedH24,
-                                      SizedBoxedH24,
-                                    ],
-                                  ),
+                        ? RefreshIndicator(
+                      onRefresh: _refreshData, // السحب للتحديث
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            // Filter sliders by type
+                            if (_customerHome!.response!.sliders !=
+                                null) ...[
+                              // Show sliders with type "main"
+                              if (_customerHome!.response!.sliders!
+                                  .any((slider) =>
+                              slider.type == "customer"))
+                                CarouselSliderHome(
+                                  slides: _customerHome!
+                                      .response!.sliders
+                                      .where((slider) =>
+                                  slider.type == "customer")
+                                      .toList(),
+                                  catergoryTitle: _customerHome!
+                                      .response!.categories,
                                 ),
-                              )
-                            : Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  errorWidget(context),
-                                  Builder(
-                                    builder: (context) => MaterialButton(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(8.0),
-                                      ),
-                                      color: MyColors.MainBulma,
-                                      onPressed: _refreshData,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 16, horizontal: 12),
-                                        child: Text(
-                                          'Try Again'.tr(),
-                                          style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600),
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                ],
+                            ],
+                            SizedBoxedH16,
+                            TitleSections(
+                              title: 'Categories',
+                              isViewAll: true,
+                              onTapView: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            AllCategoriesScreen()));
+                              },
+                            ),
+                            SizedBoxedH16,
+                            CategoryListView(
+                                categories: _customerHome!
+                                    .response!.categories),
+                            SizedBoxedH16,
+                            TitleSections(
+                              title: 'Most requested',
+                              isViewAll: true,
+                              onTapView: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            TopSellingScreen()));
+                              },
+                            ),
+                            SizedBoxedH8,
+                            MostRequestedListView(
+                                mostRequested: _customerHome!
+                                    .response!.topSelling),
+                            SizedBoxedH16,
+                            SizedBoxedH16,
+                            TitleSections(
+                              title: 'Service Providers',
+                              isViewAll: true,
+                              onTapView: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            AllProvidersScreen()));
+                              },
+                            ),
+                            // SizedBoxedH8,
+                            ProvidersListViewHome(
+                              serviceProviders: _customerHome!
+                                  .response!.randomServiceProviders,
+                              customer: _customerHome!.response!.user,
+                            ),
+                            SizedBoxedH24,
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Dear user, before contacting the technicians through the app, we would like to remind you of the importance of contracting within the app and avoiding any dealings with technicians outside it. This ensures your rights as a user and allows you to benefit from the advantages provided by the app.'
+                                    .tr(),
+                                style: const TextStyle(
+                                  color: MyColors.Darkest,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
+                            ),
+                            SizedBoxedH24,
+                            SizedBoxedH24,
+                          ],
+                        ),
+                      ),
+                    )
+                        : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        errorWidget(context),
+                        Builder(
+                          builder: (context) => MaterialButton(
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                              BorderRadius.circular(8.0),
+                            ),
+                            color: MyColors.MainBulma,
+                            onPressed: _refreshData,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 16, horizontal: 12),
+                              child: Text(
+                                'Try Again'.tr(),
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 ),
               ],

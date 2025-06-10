@@ -465,3 +465,4 @@ class _ProviderDetailsScreenState extends State<ProviderDetailsScreen> {
     );
   }
 }
+

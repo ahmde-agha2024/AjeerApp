@@ -18,8 +18,11 @@ import 'package:localize_and_translate/localize_and_translate.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../../../NewDesign/blue_Provider.dart';
+import '../../../NewDesign/plans.dart';
 import '../../../constants/get_storage.dart' show storage;
 import '../../../constants/my_colors.dart';
+import '../../../controllers/service_provider/provider_offers_provider.dart';
 import '../../widgets/border_radius_card.dart';
 import '../../widgets/button_styles.dart';
 import '../../widgets/home/appbar_home.dart';
@@ -29,6 +32,8 @@ import '../../widgets/provider/home_chart.dart';
 import '../../widgets/provider/home_stats_card.dart';
 import '../../widgets/sized_box.dart';
 import '../../widgets/title_section.dart';
+import '../auth/freedaysscreen.dart';
+import '../home_client/projectForUserDetails.dart';
 import 'request_details_provider_screen.dart';
 import 'request_offer_provider_screen.dart';
 
@@ -70,7 +75,7 @@ class _HomeProviderScreenState extends State<HomeProviderScreen> {
       _isFetched = true;
     });
     await storage.write(
-        'verified_provider', fetchedData.response!.providerAccount!.id_verifed);
+        'verified_provider', _providerHome!.response!.providerAccount!.id_verifed);
     await storage.write(
         'offer_count', fetchedData.response!.providerAccount!.offerCount);
     await storage.write(
@@ -82,17 +87,39 @@ class _HomeProviderScreenState extends State<HomeProviderScreen> {
 
     return Stack(
       children: [
-        BackgroundAppbarHome(
-          imageAssetPath: 'assets/Icons/home_background.jpeg',
-          height: MediaQuery.of(context).size.height,
-          width: MediaQuery.of(context).size.width,
-        ),
+        // BackgroundAppbarHome(
+        //   imageAssetPath: 'assets/Icons/home_background.jpeg',
+        //   height: MediaQuery.of(context).size.height,
+        //   width: MediaQuery.of(context).size.width,
+        // ),
+
         Column(
           children: [
             SizedBoxedH16,
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: AppbarHome(),
+            ),
+            SizedBox(
+              height: 4,
+            ),
+            Container(
+              height: 2, // Thickness of the divider
+              decoration: BoxDecoration(
+                color: Colors.grey[300], // Divider color
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    offset: Offset(0, 2), // Shadow goes downward
+                    blurRadius: 4,
+                  ),
+                ],
+                borderRadius:
+                    BorderRadius.circular(4), // Optional rounded edges
+              ),
+            ),
+            SizedBox(
+              height: 12,
             ),
             Expanded(
                 child: ClipRRect(
@@ -115,36 +142,36 @@ class _HomeProviderScreenState extends State<HomeProviderScreen> {
                                 child: Column(
                                   children: [
                                     SizedBoxedH16,
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: BuildStatsCard(
-                                              'العروض المتاحة لي',
-                                              _providerHome!
-                                                  .response!.stats!.offerCount!
-                                                  .toString(),
-                                              Colors.redAccent,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 16),
-                                          Expanded(
-                                            child: BuildStatsCard(
-                                              'العروض المقدمة',
-                                              _providerHome!
-                                                  .response!.stats!.offersCount!
-                                                  .toString(),
-                                              Colors.black,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 24),
+                                    // Padding(
+                                    //   padding: const EdgeInsets.symmetric(
+                                    //       horizontal: 16),
+                                    //   child: Row(
+                                    //     mainAxisAlignment:
+                                    //         MainAxisAlignment.spaceBetween,
+                                    //     children: [
+                                    //       Expanded(
+                                    //         child: BuildStatsCard(
+                                    //           'العروض المتاحة لي',
+                                    //           _providerHome!
+                                    //               .response!.stats!.offerCount!
+                                    //               .toString(),
+                                    //           Colors.redAccent,
+                                    //         ),
+                                    //       ),
+                                    //       const SizedBox(width: 16),
+                                    //       Expanded(
+                                    //         child: BuildStatsCard(
+                                    //           'العروض المقدمة',
+                                    //           _providerHome!
+                                    //               .response!.stats!.offersCount!
+                                    //               .toString(),
+                                    //           Colors.black,
+                                    //         ),
+                                    //       ),
+                                    //     ],
+                                    //   ),
+                                    // ),
+                                    // const SizedBox(height: 24),
 
                                     // Filter sliders by type
                                     if (_providerHome!.response!.sliders !=
@@ -234,6 +261,7 @@ class _HomeProviderScreenState extends State<HomeProviderScreen> {
                                           const NeverScrollableScrollPhysics(),
                                       shrinkWrap: true,
                                       itemBuilder: (ctx, index) {
+
                                         return LatestServiceCard(
                                           serviceDetails: _providerHome!
                                               .response!.latestServices![index],
@@ -331,10 +359,17 @@ class LatestServiceCard extends StatefulWidget {
 }
 
 class _LatestServiceCardState extends State<LatestServiceCard> {
+  final TextEditingController _commentController = TextEditingController();
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    print('widget.verified');
-    print(widget.verified);
+
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -421,96 +456,135 @@ class _LatestServiceCardState extends State<LatestServiceCard> {
                                 style: flatButtonPrimaryStyle,
                                 onPressed: widget.verified == 1
                                     ? () async {
-                                        final int offerCount =
-                                            storage.read('offer_count') ?? 0;
-                                        final int providerId =
-                                            storage.read('provider_id') ?? 0;
-                                        if (offerCount == 1) {
-                                          // Show confirmation dialog
-                                          final result =
-                                              await showDialog<String>(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return Directionality(
-                                                textDirection:
-                                                    TextDirection.rtl,
-                                                child: AlertDialog(
-                                                  title: Text(
-                                                      ' تنبيه  مشروع - ${widget.serviceDetails.title}'),
-                                                  content: Text(
-                                                      'تملك حالياً عرض واحد فقط. هل ترغب بالانسحاب من باقي التقديمات أم شراء عروض إضافية؟'),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        Navigator.of(context)
-                                                            .pop('withdraw');
-                                                      },
-                                                      child: Text(
-                                                          'انسحاب من باقي المشاريع'),
-                                                    ),
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        Navigator.of(context)
-                                                            .pop('purchase');
-                                                      },
-                                                      child: Text(
-                                                          'شراء عروض إضافية'),
-                                                    ),
-                                                  ],
-                                                ),
-                                              );
-                                            },
-                                          );
-
-                                          if (result == 'withdraw') {
-                                            // Delete pending offers
-                                            final response = await Provider.of<
-                                                        ProviderServicesProvider>(
-                                                    context,
-                                                    listen: false)
-                                                .deletePendingOffers(
-                                                    providerId);
-
-                                            if (response.status ==
-                                                ResponseStatus.success) {
-                                              Navigator.of(context).push(
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      RequestOfferProviderScreen(
-                                                    serviceDetails:
-                                                        widget.serviceDetails,
-                                                  ),
-                                                ),
-                                              );
-                                            } else {
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                SnackBar(
-                                                  content: Text(response
-                                                          .errorMessage ??
-                                                      'حدث خطأ أثناء حذف العروض المعلقة'),
-                                                ),
-                                              );
-                                            }
-                                          } else if (result == 'purchase') {
-                                            Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    PackagesScreen(),
+                                        final result =
+                                            await showModalBottomSheet(
+                                          backgroundColor: Colors.white,
+                                          context: context,
+                                          isScrollControlled: true,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.vertical(
+                                                top: Radius.circular(16)),
+                                          ),
+                                          builder: (context) {
+                                            return Padding(
+                                              padding: EdgeInsets.only(
+                                                bottom: MediaQuery.of(context)
+                                                    .viewInsets
+                                                    .bottom,
                                               ),
+                                              child: _buildBottomSheetContent(
+                                                  context,
+                                                  widget.serviceDetails.id!),
                                             );
-                                          }
-                                        } else {
+                                          },
+                                        );
+
+                                        if (result == 'success') {
                                           Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  RequestOfferProviderScreen(
-                                                serviceDetails:
-                                                    widget.serviceDetails,
-                                              ),
-                                            ),
+                                            MaterialPageRoute(builder: (_) => OfferSuccessPage()),
                                           );
+                                        } else if (result == "apply") {
+                                          // Navigator.of(context).push(
+                                          //   MaterialPageRoute(builder: (_) => OfferSuccessPage()),
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text("لقد قمت بالتقديم مسبفا")));
+                                          // );
+                                        } else {
+                                          result != null
+                                              ? ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text("$result")))
+                                              : null;
                                         }
+                                        // final int offerCount =
+                                        //     storage.read('offer_count') ?? 0;
+                                        // final int providerId =
+                                        //     storage.read('provider_id') ?? 0;
+                                        // if (offerCount == 1) {
+                                        //   // Show confirmation dialog
+                                        //   final result =
+                                        //       await showDialog<String>(
+                                        //     context: context,
+                                        //     builder: (BuildContext context) {
+                                        //       return Directionality(
+                                        //         textDirection:
+                                        //             TextDirection.rtl,
+                                        //         child: AlertDialog(
+                                        //           title: Text(
+                                        //               ' تنبيه  مشروع - ${widget.serviceDetails.title}'),
+                                        //           content: Text(
+                                        //               'تملك حالياً عرض واحد فقط. هل ترغب بالانسحاب من باقي التقديمات أم شراء عروض إضافية؟'),
+                                        //           actions: [
+                                        //             TextButton(
+                                        //               onPressed: () {
+                                        //                 Navigator.of(context)
+                                        //                     .pop('withdraw');
+                                        //               },
+                                        //               child: Text(
+                                        //                   'انسحاب من باقي المشاريع'),
+                                        //             ),
+                                        //             TextButton(
+                                        //               onPressed: () {
+                                        //                 Navigator.of(context)
+                                        //                     .pop('purchase');
+                                        //               },
+                                        //               child: Text(
+                                        //                   'شراء عروض إضافية'),
+                                        //             ),
+                                        //           ],
+                                        //         ),
+                                        //       );
+                                        //     },
+                                        //   );
+                                        //
+                                        //   if (result == 'withdraw') {
+                                        //     // Delete pending offers
+                                        //     final response = await Provider.of<
+                                        //                 ProviderServicesProvider>(
+                                        //             context,
+                                        //             listen: false)
+                                        //         .deletePendingOffers(
+                                        //             providerId);
+                                        //
+                                        //     if (response.status ==
+                                        //         ResponseStatus.success) {
+                                        //       Navigator.of(context).push(
+                                        //         MaterialPageRoute(
+                                        //           builder: (context) =>
+                                        //               RequestOfferProviderScreen(
+                                        //             serviceDetails:
+                                        //                 widget.serviceDetails,
+                                        //           ),
+                                        //         ),
+                                        //       );
+                                        //     } else {
+                                        //       ScaffoldMessenger.of(context)
+                                        //           .showSnackBar(
+                                        //         SnackBar(
+                                        //           content: Text(response
+                                        //                   .errorMessage ??
+                                        //               'حدث خطأ أثناء حذف العروض المعلقة'),
+                                        //         ),
+                                        //       );
+                                        //     }
+                                        //   } else if (result == 'purchase') {
+                                        //     Navigator.of(context).push(
+                                        //       MaterialPageRoute(
+                                        //         builder: (context) =>
+                                        //             PackagesScreen(),
+                                        //       ),
+                                        //     );
+                                        //   }
+                                        // } else {
+                                        //   Navigator.of(context).push(
+                                        //     MaterialPageRoute(
+                                        //       builder: (context) =>
+                                        //           RequestOfferProviderScreen(
+                                        //         serviceDetails:
+                                        //             widget.serviceDetails,
+                                        //       ),
+                                        //     ),
+                                        //   );
+                                        // }
                                       }
                                     : null,
                                 child: Text(
@@ -530,14 +604,30 @@ class _LatestServiceCardState extends State<LatestServiceCard> {
                               child: TextButton(
                                 style: flatButtonLightStyle,
                                 onPressed: () async {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          RequestDetailsProviderScreen(
-                                        loadedService: widget.serviceDetails,
-                                      ),
-                                    ),
-                                  );
+
+
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => ProjectForUserDetails(
+                                            service: widget.serviceDetails,
+                                          )));
+                                  // Navigator.of(context).push(
+                                  //   MaterialPageRoute(
+                                  //     builder: (context) =>
+                                  //         PlansScreen(
+                                  //
+                                  //         ),
+                                  //   ),
+                                  // );
+                                  // Navigator.of(context).push(
+                                  //   MaterialPageRoute(
+                                  //     builder: (context) =>
+                                  //         RequestDetailsProviderScreen(
+                                  //       loadedService: widget.serviceDetails,
+                                  //     ),
+                                  //   ),
+                                  // );
                                 },
                                 child: Text(
                                   'عرض تفاصيل'.tr(),
@@ -558,6 +648,96 @@ class _LatestServiceCardState extends State<LatestServiceCard> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildBottomSheetContent(BuildContext context, int id) {
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Text(
+                'اضافة تعليق',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Color(0xff181829),
+                ),
+              ),
+              Spacer(),
+              IconButton(
+                icon: Icon(Icons.close, size: 32, color: Color(0xff181829)),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            decoration: BoxDecoration(
+              color: Color(0xffF7F8FA),
+              borderRadius: BorderRadius.circular(32),
+            ),
+            child: TextField(
+              controller: _commentController,
+              maxLines: 4,
+              textAlign: TextAlign.right,
+              decoration: InputDecoration(
+                hintText: 'اكتب تعليق حول الخدمة (إختياري)....',
+                hintStyle: TextStyle(
+                  color: Color(0xffC6C6C8),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                ),
+                border: InputBorder.none,
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            height: 60,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xffDD5B4B),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16.0),
+                ),
+              ),
+              onPressed: () async {
+                ResponseHandler response =
+                    await Provider.of<ProviderOffersProvider>(context,
+                            listen: false)
+                        .createOfferForServiceRequest(
+                  serviceId: id,
+                  content: _commentController.text,
+                );
+
+                if (response.status == ResponseStatus.success) {
+                  Navigator.of(context).pop("success");
+                } else if (response.errorMessage != null) {
+                  Navigator.of(context).pop(response.errorMessage);
+                } else {
+                  Navigator.of(context).pop("apply");
+                }
+              },
+              child: Text(
+                'التقديم على المشروع',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

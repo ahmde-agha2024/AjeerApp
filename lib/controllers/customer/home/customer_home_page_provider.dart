@@ -31,7 +31,7 @@ class CustomerHomeProvider with ChangeNotifier {
           'authorization': 'Bearer $_accessToken',
         },
       );
-
+print(response.body);
       if (!await checkResponseHttp(response)) {
         return handledResponse;
       }
@@ -402,4 +402,31 @@ class CustomerHomeProvider with ChangeNotifier {
     }
     return handledResponse;
   }
+
+  // Future<Map<String, dynamic>> fetchSubscriptionStatus() async {
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse('https://dev.ajeer.cloud/provider/new-packages-my-subscriptions'),
+  //       headers: {
+  //         'Accept': 'application/json',
+  //         'Content-Type': 'application/json',
+  //         // Add your authorization header if needed
+  //         'authorization': 'Bearer $_accessToken',
+  //       },
+  //     );
+  //
+  //     print(_accessToken);
+  //     print(response.statusCode);
+  //
+  //     if (response.statusCode == 200) {
+  //       return json.decode(response.body);
+  //     } else {
+  //       throw Exception('Failed to load subscription status');
+  //     }
+  //   } catch (e) {
+  //     throw Exception('Error fetching subscription status: $e');
+  //   }
+  // }
 }
+
+

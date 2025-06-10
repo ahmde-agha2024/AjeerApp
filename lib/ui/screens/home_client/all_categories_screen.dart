@@ -10,6 +10,7 @@ import 'package:localize_and_translate/localize_and_translate.dart';
 import 'package:provider/provider.dart';
 
 import '../../widgets/appbar_title.dart';
+import '../../widgets/home/allcategory.dart';
 import '../../widgets/single_category_card.dart';
 import '../../widgets/sized_box.dart';
 import '../../widgets/title_section.dart';
@@ -172,7 +173,7 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
                                   itemBuilder: (context, subIndex) {
                                     final subCategory =
                                         category.subCategories![subIndex];
-                                    return SingleCategoryCard(
+                                    return allCategory(
                                       title: subCategory.title,
                                       imagePath: subCategory.image,
                                       onTapClick: () {

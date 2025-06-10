@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:localize_and_translate/localize_and_translate.dart';
 import 'package:provider/provider.dart';
+import 'package:sizer/sizer.dart';
 
 import '../../../bussiness/drawer_provider.dart';
 import '../../../constants/my_colors.dart';
@@ -24,7 +25,7 @@ class AppbarHome extends StatelessWidget {
                   )
                 : Column(
                     children: [
-                      const SizedBox(height: 46),
+                      const SizedBox(height: 25),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -75,10 +76,10 @@ class AppbarHome extends StatelessWidget {
                               }
                             },
                             child: authProvider.isProvider
-                                ? Icon(
-                                    Icons.list,
-                                    color: Colors.white,
-                              size: 25,
+                                ? Image.asset(
+                                    "assets/Icons/Home_Provider_Icon_List.png",
+                                    width: 44,
+                                    height: 44,
                                   )
                                 : CachedNetworkImage(
                                     imageUrl: authProvider.customer?.image ??
@@ -142,17 +143,10 @@ class AppbarHome extends StatelessWidget {
                                   Navigator.of(context).push(MaterialPageRoute(
                                       builder: (context) => MessagesScreen()));
                                 },
-                                child: Container(
-                                  width: 42.0,
-                                  height: 42.0,
-                                  decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.white),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: SvgPicture.asset(
-                                        'assets/svg/message-text.svg'),
-                                  ),
+                                child: Image.asset(
+                                  'assets/Icons/chatIcon.png',
+                                  width: 44,
+                                  height: 44,
                                 ),
                               ),
                               // Positioned(
@@ -178,20 +172,15 @@ class AppbarHome extends StatelessWidget {
                               Navigator.of(context).push(MaterialPageRoute(
                                   builder: (context) => NotificationsScreen()));
                             },
-                            child: Container(
-                              width: 42.0,
-                              height: 42.0,
-                              decoration: const BoxDecoration(
-                                  shape: BoxShape.circle, color: Colors.white),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: SvgPicture.asset(
-                                    'assets/svg/notification-bing.svg'),
-                              ),
+                            child: Image.asset(
+                              'assets/Icons/Notification_Icon_New.png',
+                              width: 44,
+                              height: 44,
                             ),
                           ),
                         ],
                       ),
+
                       SizedBox(height: 16),
                     ],
                   )
